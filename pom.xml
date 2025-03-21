@@ -32,7 +32,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.example.Main</mainClass>
+                            <mainClass>github.tonyenergy.Application</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

@@ -19,7 +19,7 @@ public class WebSocketServer extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         sessions.add(session);
-        System.out.println("🔗 WebSocket 连接已建立：" + session.getId());
+        System.out.println("🔗 WebSocket Connect Established: " + session.getId());
     }
 
     @Override
@@ -28,7 +28,7 @@ public class WebSocketServer extends TextWebSocketHandler {
 
         // 发送消息回客户端
         for (WebSocketSession s : sessions) {
-            s.sendMessage(new TextMessage("收到：" + message.getPayload()));
+            s.sendMessage(new TextMessage("Receive: " + message.getPayload()));
         }
     }
 

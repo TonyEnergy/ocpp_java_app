@@ -24,7 +24,7 @@ public class WebSocketServer extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        System.out.println("📩 收到消息：" + message.getPayload());
+        System.out.println("📩 Received message：" + message.getPayload());
 
         // 发送消息回客户端
         for (WebSocketSession s : sessions) {
@@ -35,7 +35,7 @@ public class WebSocketServer extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         sessions.remove(session);
-        System.out.println("❌ WebSocket 连接关闭：" + session.getId());
+        System.out.println("❌ WebSocket connection closed：" + session.getId());
     }
 }
 

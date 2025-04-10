@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
  */
 @RestController
 public class HealthController {
-
+    private static final Logger logger = LoggerFactory.getLogger(HealthController.class);
     @GetMapping("/ping")
     public String ping() {
         logger.log("📩 Server Received message：ping");

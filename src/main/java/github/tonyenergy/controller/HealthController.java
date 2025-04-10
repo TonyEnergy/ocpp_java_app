@@ -3,7 +3,9 @@ package github.tonyenergy.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 /**
- * @Author: liutaohua
+ * Use for uptimeRobot, wake up render application
+ *
+ * @Author: Tony
  * @Date: 2025/4/9
  */
 @RestController

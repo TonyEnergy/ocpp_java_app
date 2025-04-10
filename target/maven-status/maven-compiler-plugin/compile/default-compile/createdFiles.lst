@@ -1,5 +1,8 @@
 github\tonyenergy\controller\HealthController.class
-github\tonyenergy\websocket\WebSocketServer.class
+github\tonyenergy\controller\LogController.class
 github\tonyenergy\Application.class
-github\tonyenergy\config\WebSocketConfig.class
 github\tonyenergy\config\SwaggerConfig.class
+github\tonyenergy\schedule\LogScheduler.class
+github\tonyenergy\websocket\WebSocketServer.class
+github\tonyenergy\config\WebSocketConfig.class
+github\tonyenergy\service\LogUploadService.class

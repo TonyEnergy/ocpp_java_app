@@ -1,10 +1,9 @@
 package github.tonyenergy.websocket;
 
 /**
- * @Author: liutaohua
+ * @Author: Tony
  * @Date: 2025/3/20
  */
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
@@ -28,7 +27,7 @@ public class WebSocketServer extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         log.info("📩 Received message：" + message.getPayload());
 
-        // 发送消息回客户端
+        // Send message back to client
         for (WebSocketSession s : sessions) {
             s.sendMessage(new TextMessage("Receive: " + message.getPayload()));
         }

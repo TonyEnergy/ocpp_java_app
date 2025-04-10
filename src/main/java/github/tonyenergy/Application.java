@@ -1,19 +1,21 @@
 package github.tonyenergy;
 
-/**
- * @Author: liutaohua
- * @Date: ${DATE}
- */
+
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
+import org.springframework.scheduling.annotation.EnableScheduling;
+/**
+ * @Author: Tony
+ * @Date: 2025/4/9
+ */
 @Slf4j
+@EnableScheduling
 @SpringBootApplication
 public class Application {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
-        log.info("🚀 WebSocket 服务器已启动！");
+        log.info("🚀 WebSocket Server Start！");
     }
 }

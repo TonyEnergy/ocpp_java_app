@@ -1,0 +1,29 @@
+2025-04-10 20:51:59.434 [main] INFO  github.tonyenergy.Application - Starting Application using Java 1.8.0_412 on LTH with PID 15636 (D:\ocpp_java_app\target\classes started by LTH in D:\ocpp_java_app)
+2025-04-10 20:51:59.437 [main] INFO  github.tonyenergy.Application - No active profile set, falling back to 1 default profile: "default"
+2025-04-10 20:52:00.067 [main] INFO  o.s.boot.web.embedded.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8080 (http)
+2025-04-10 20:52:00.068 [main] INFO  org.apache.catalina.core.AprLifecycleListener - An older version [1.2.35] of the Apache Tomcat Native library is installed, while Tomcat recommends a minimum version of [1.2.38]
+2025-04-10 20:52:00.068 [main] INFO  org.apache.catalina.core.AprLifecycleListener - Loaded Apache Tomcat Native library [1.2.35] using APR version [1.7.0].
+2025-04-10 20:52:00.072 [main] INFO  org.apache.catalina.core.AprLifecycleListener - APR capabilities: IPv6 [true], sendfile [true], accept filters [false], random [true], UDS [true].
+2025-04-10 20:52:00.072 [main] INFO  org.apache.catalina.core.AprLifecycleListener - APR/OpenSSL configuration: useAprConnector [false], useOpenSSL [true]
+2025-04-10 20:52:00.074 [main] INFO  org.apache.catalina.core.AprLifecycleListener - OpenSSL successfully initialized [OpenSSL 1.1.1q  5 Jul 2022]
+2025-04-10 20:52:00.079 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+2025-04-10 20:52:00.080 [main] INFO  org.apache.catalina.core.StandardService - Starting service [Tomcat]
+2025-04-10 20:52:00.080 [main] INFO  org.apache.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.83]
+2025-04-10 20:52:00.138 [main] INFO  o.a.c.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-04-10 20:52:00.138 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 680 ms
+2025-04-10 20:52:00.411 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
+2025-04-10 20:52:00.421 [main] INFO  o.s.boot.web.embedded.tomcat.TomcatWebServer - Tomcat started on port(s): 8080 (http) with context path ''
+2025-04-10 20:52:00.427 [main] INFO  github.tonyenergy.Application - Started Application in 1.244 seconds (JVM running for 1.741)
+2025-04-10 20:52:00.428 [main] INFO  github.tonyenergy.Application - 🚀 WebSocket 服务器已启动！
+2025-04-10 20:55:53.768 [http-nio-8080-exec-1] INFO  o.a.c.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-04-10 20:55:53.769 [http-nio-8080-exec-1] INFO  org.springframework.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-04-10 20:55:53.769 [http-nio-8080-exec-1] INFO  org.springframework.web.servlet.DispatcherServlet - Completed initialization in 0 ms
+2025-04-10 20:55:54.058 [http-nio-8080-exec-8] INFO  org.springdoc.api.AbstractOpenApiResource - Init duration for springdoc-openapi is: 77 ms
+2025-04-10 20:55:59.561 [http-nio-8080-exec-9] INFO  github.tonyenergy.controller.HealthController - 📩 Server Received message：ping
+2025-04-10 20:56:00.279 [http-nio-8080-exec-10] INFO  github.tonyenergy.controller.HealthController - 📩 Server Received message：ping
+2025-04-10 20:56:00.619 [http-nio-8080-exec-1] INFO  github.tonyenergy.controller.HealthController - 📩 Server Received message：ping
+2025-04-10 20:56:00.763 [http-nio-8080-exec-3] INFO  github.tonyenergy.controller.HealthController - 📩 Server Received message：ping
+2025-04-10 20:56:00.898 [http-nio-8080-exec-2] INFO  github.tonyenergy.controller.HealthController - 📩 Server Received message：ping
+2025-04-10 20:56:01.033 [http-nio-8080-exec-5] INFO  github.tonyenergy.controller.HealthController - 📩 Server Received message：ping
+2025-04-10 20:56:01.168 [http-nio-8080-exec-6] INFO  github.tonyenergy.controller.HealthController - 📩 Server Received message：ping
+2025-04-10 20:56:01.297 [http-nio-8080-exec-4] INFO  github.tonyenergy.controller.HealthController - 📩 Server Received message：ping

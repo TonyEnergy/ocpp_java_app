@@ -5,13 +5,15 @@ package github.tonyenergy;
  * @Date: ${DATE}
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+@Slf4j
 @SpringBootApplication
 public class Application {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
-        System.out.println("🚀 WebSocket 服务器已启动！");
+        log.info("🚀 WebSocket 服务器已启动！");
     }
 }

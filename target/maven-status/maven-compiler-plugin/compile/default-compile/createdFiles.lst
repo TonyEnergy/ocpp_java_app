@@ -1,3 +1,5 @@
-github\tonyenergy\websocket\WebSocketConfig.class
+github\tonyenergy\controller\HealthController.class
 github\tonyenergy\websocket\WebSocketServer.class
 github\tonyenergy\Application.class
+github\tonyenergy\config\WebSocketConfig.class
+github\tonyenergy\config\SwaggerConfig.class

@@ -1,6 +1,8 @@
 package github.tonyenergy.websocket;
 
 /**
+ * WebSocketServer
+ *
  * @Author: Tony
  * @Date: 2025/3/20
  */

@@ -8,11 +8,10 @@
     <artifactId>ocpp_java_app</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <!-- Spring Boot 统一版本管理 -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.18</version>  <!-- 确保所有依赖版本一致 -->
+        <version>2.7.18</version>
         <relativePath/>
     </parent>
 
@@ -52,9 +51,14 @@
         <dependency>
             <groupId>com.aliyun.oss</groupId>
             <artifactId>aliyun-sdk-oss</artifactId>
-            <version>3.15.0</version> <!-- 请根据需要选择版本 -->
+            <version>3.15.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.83</version>
+        </dependency>
 
 
     </dependencies>

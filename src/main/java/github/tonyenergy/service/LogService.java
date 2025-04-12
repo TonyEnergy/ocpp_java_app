@@ -1,10 +1,10 @@
 package github.tonyenergy.service;
 
+import cn.hutool.http.HttpUtil;
+import cn.hutool.json.JSONObject;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
-import github.tonyenergy.util.HttpUtil;
 import lombok.extern.slf4j.Slf4j;
-import com.alibaba.fastjson.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
@@ -15,6 +15,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -51,11 +52,10 @@ public class LogService {
         ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
     }
 
-
     /**
      * Upload Local Logs to Oss
      */
-    public void uploadLocalLogsToOSS() {
+    public void uploadLocalLogsToOss() {
         File logDir = new File(localLogPath);
         File[] logFiles = logDir.listFiles((dir, name) -> name.contains("ocpp-") && name.endsWith(".log") && !name.equals("ocpp.log"));
         if (checkLogFiles(logDir, logFiles)) {
@@ -107,16 +107,30 @@ public class LogService {
         return true;
     }
 
-    public void mergeAndSendLogs() {
+    /**
+     * Thorough server chan to send local log to WeChat
+     */
+    public void sendLogsToWechat() {
+        File mergeLogs = mergeLogs();
+        String formattedContent = formatLogContent(mergeLogs);
+        sendLogsToServerChan(formattedContent);
+    }
+
+    /**
+     * Merge ocpp logs
+     *
+     * @return merged logs file
+     */
+    public File mergeLogs() {
         try {
             File logDir = new File(localLogPath);
             File[] logFiles = logDir.listFiles((dir, name) -> name.contains("ocpp-") && name.endsWith(".log") && !name.equals("ocpp.log"));
             if (checkLogFiles(logDir, logFiles)) {
-                // 获取今天的日期
+                // Get today's date
                 String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
                 String mergedLogFileName = "merged-log-" + timestamp + ".txt";
                 File mergedLogFile = new File(localLogPath, mergedLogFileName);
-                // 合并日志文件
+                // Merge log files
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(mergedLogFile))) {
                     for (File logFile : logFiles) {
                         log.info("✅ Merging log file: {}", logFile.getName());
@@ -125,31 +139,63 @@ public class LogService {
                         writer.newLine();
                     }
                 }
-                // 将合并后的日志发送到Server酱
-                log.info("✅ Sending log file to wechat: {}", mergedLogFile.getName());
-                sendLogsToServerChan(mergedLogFile);
-                log.info("✅ Sent!");
+                return mergedLogFile;
             }
         } catch (Exception e) {
             log.error("❌ Error merging and sending logs: ", e);
         }
+        return null;
     }
 
     /**
-     * send logfile to server chan
+     * Send logfile to server chan
      *
-     * @param mergedLogFile 5hours log file
-     * @throws IOException error
+     * @param formattedContent Formatted 5hours log file
      */
-    private void sendLogsToServerChan(File mergedLogFile) throws IOException {
-        String content = new String(FileCopyUtils.copyToByteArray(mergedLogFile));
-        String formattedContent = content.replaceAll("\r\n", "  \n")
-                .replaceAll("\n", "  \n");
+    private void sendLogsToServerChan(String formattedContent) {
+        log.info("✅ Sending to server chan...");
+        // Send to server chan app
         JSONObject payload = new JSONObject();
-        payload.put("text", "Today's Log");
+        payload.put("text", "## Server Log");
         payload.put("desp", formattedContent);
         String url = "https://sctapi.ftqq.com/" + serverChanToken + ".send";
-        HttpUtil.post(url, payload.toJSONString());
+        HttpUtil.post(url, payload.toString());
+        log.info("✅ Done!");
+    }
+
+    /**
+     * Format log content
+     *
+     * @param mergedLogFile mergedLogFile
+     * @return log after format
+     */
+    private String formatLogContent(File mergedLogFile) {
+        log.info("✅ Formatting...");
+        // Read file content
+        String content;
+        try {
+            content = new String(FileCopyUtils.copyToByteArray(mergedLogFile), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            log.error("❌ Error formatting...");
+            throw new RuntimeException(e);
+        }
+        // Format content, add newline for each logs
+        StringBuilder sb = new StringBuilder();
+        sb.append("#### Today's Log  \n  \n");
+        String[] lines = content.split("\n");
+        for (String line : lines) {
+            if (line.contains("INFO")) {
+                sb.append("**INFO**: ").append(line).append("  \n");
+            } else if (line.contains("WARN")) {
+                sb.append("**WARN**: ").append(line).append("  \n");
+            } else if (line.contains("ERROR")) {
+                sb.append("**ERROR**: ").append(line).append("  \n");
+            } else {
+                sb.append(line).append("  \n");
+            }
+        }
+        sb.append("  \n---");
+        return sb.toString();
     }
 
 
@@ -158,8 +204,9 @@ public class LogService {
      */
     @PreDestroy
     public void onShutdown() {
-        log.info("🛑 Application shutting down. Uploading logs to OSS...");
-        uploadLocalLogsToOSS();
+        log.error("🛑 Application shutting down. Uploading logs to OSS...");
+        uploadLocalLogsToOss();
+        log.error("🛑 Upload finished!");
         if (ossClient != null) {
             ossClient.shutdown();
         }

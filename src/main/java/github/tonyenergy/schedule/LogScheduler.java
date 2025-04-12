@@ -26,7 +26,7 @@ public class LogScheduler {
     @Scheduled(cron = "0 2 0/5 * * ?")
     public void scheduleLogUpload() {
         log.info("🕒 [{}] Scheduled task: uploading logs to OSS...", LocalDateTime.now());
-        logService.uploadLocalLogsToOSS();
+        logService.uploadLocalLogsToOss();
         log.info("🕒 Scheduled task: Uploaded!");
     }
 
@@ -36,7 +36,7 @@ public class LogScheduler {
     @Scheduled(cron = "0 1 0/5 * * ?")
     public void scheduledSendLogToWeChat() {
         log.info("🕒 [{}] Scheduled task: sending logs to wechat...", LocalDateTime.now());
-        logService.mergeAndSendLogs();
+        logService.sendLogsToWechat();
         log.info("🕒 Scheduled task: Sent!");
     }
 

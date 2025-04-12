@@ -26,8 +26,8 @@ public class LogController {
      * upload
      */
     @GetMapping("/uploadLog")
-    public void uploadLocalLogsToOSS() {
-        logService.uploadLocalLogsToOSS();
+    public void uploadLocalLogsToOss() {
+        logService.uploadLocalLogsToOss();
     }
 
     /**
@@ -41,8 +41,8 @@ public class LogController {
     /**
      * get log file through local logs then send to server chan
      */
-    @GetMapping("/sendLog")
-    public void mergeAndSendLogs() {
-        logService.mergeAndSendLogs();
+    @GetMapping("/sendLogToWechat")
+    public void sendLogToWeChat() {
+        logService.sendLogsToWechat();
     }
 }

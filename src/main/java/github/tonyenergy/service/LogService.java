@@ -57,7 +57,7 @@ public class LogService {
      */
     public void uploadLocalLogsToOss() {
         File logDir = new File(localLogPath);
-        File[] logFiles = logDir.listFiles((dir, name) -> name.contains("ocpp-") && name.endsWith(".log") && !name.equals("ocpp.log"));
+        File[] logFiles = logDir.listFiles((dir, name) -> (name.contains("ocpp-") || name.contains("merge-")) && !"ocpp.log".equals(name));
         if (checkLogFiles(logDir, logFiles)) {
             for (File logFile : logFiles) {
                 String dateFolder = new SimpleDateFormat("yyyy/MM/dd").format(new Date());
@@ -78,7 +78,8 @@ public class LogService {
      */
     public void deleteLocalLogs() {
         File logDir = new File(localLogPath);
-        File[] logFiles = logDir.listFiles((dir, name) -> name.contains("ocpp-") || name.contains("merge-") && !name.equals("ocpp.log"));
+        // delete ocpp file and merge file
+        File[] logFiles = logDir.listFiles((dir, name) -> (name.contains("ocpp-") || name.contains("merge-")) && !"ocpp.log".equals(name));
         if (checkLogFiles(logDir, logFiles)) {
             for (File logFile : logFiles) {
                 String fileName = logFile.getName();
@@ -124,7 +125,8 @@ public class LogService {
     public File mergeLogs() {
         try {
             File logDir = new File(localLogPath);
-            File[] logFiles = logDir.listFiles((dir, name) -> name.contains("ocpp-") && name.endsWith(".log") && !name.equals("ocpp.log"));
+            // Merge ocpp logs
+            File[] logFiles = logDir.listFiles((dir, name) -> (name.contains("ocpp-") && !"ocpp.log".equals(name)));
             if (checkLogFiles(logDir, logFiles)) {
                 // Get today's date
                 String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());

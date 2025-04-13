@@ -21,16 +21,6 @@ public class LogScheduler {
     private final LogService logService;
 
     /**
-     * Upload Log every 5 hours at the 2nd minute
-     */
-    @Scheduled(cron = "0 2 0/5 * * ?")
-    public void scheduleLogUpload() {
-        log.info("🕒 [{}] Scheduled task: uploading logs to OSS...", LocalDateTime.now());
-        logService.uploadLocalLogsToOss();
-        log.info("🕒 Scheduled task: Uploaded!");
-    }
-
-    /**
      * Send log to WeChat every 5 hours at the 1st minute
      */
     @Scheduled(cron = "0 1 0/5 * * ?")
@@ -38,6 +28,16 @@ public class LogScheduler {
         log.info("🕒 [{}] Scheduled task: sending logs to wechat...", LocalDateTime.now());
         logService.sendLogsToWechat();
         log.info("🕒 Scheduled task: Sent!");
+    }
+
+    /**
+     * Upload Log every 1 hour at the 2nd minute
+     */
+    @Scheduled(cron = "0 2 0/5 * * ?")
+    public void scheduleLogUpload() {
+        log.info("🕒 [{}] Scheduled task: uploading logs to OSS...", LocalDateTime.now());
+        logService.uploadLocalLogsToOss();
+        log.info("🕒 Scheduled task: Uploaded!");
     }
 
     /**

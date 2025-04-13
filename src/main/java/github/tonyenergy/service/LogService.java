@@ -47,29 +47,25 @@ public class LogService {
 
     private final String localLogPath = "logs";
 
+
     @PostConstruct
     public void init() {
         ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
     }
 
     /**
-     * Upload Local Logs to Oss
+     * Upload Merged Logs to Oss, need to merge first, if system shutdown in some case, we can update the logs.
      */
     public void uploadLocalLogsToOss() {
-        File logDir = new File(localLogPath);
-        File[] logFiles = logDir.listFiles((dir, name) -> (name.contains("ocpp-") || name.contains("merge-")) && !"ocpp.log".equals(name));
-        if (checkLogFiles(logDir, logFiles)) {
-            for (File logFile : logFiles) {
-                String dateFolder = new SimpleDateFormat("yyyy/MM/dd").format(new Date());
-                String objectName = "logs/" + dateFolder + "/" + logFile.getName();
-                try {
-                    // upload log file to oss
-                    ossClient.putObject(bucketName, objectName, logFile);
-                    log.info("✅ Log file upload successful! Path: {}", objectName);
-                } catch (Exception e) {
-                    log.error("❌ Failed to upload log file: {}", logFile.getName(), e);
-                }
-            }
+        File mergedLogs = mergeLogs();
+        String dateFolder = new SimpleDateFormat("yyyy/MM/dd").format(new Date());
+        String objectName = "logs/" + dateFolder + "/" + mergedLogs.getName();
+        try {
+            // upload log file to oss
+            ossClient.putObject(bucketName, objectName, mergedLogs);
+            log.info("✅ Log file upload successful! Path: {}", objectName);
+        } catch (Exception e) {
+            log.error("❌ Failed to upload log file: {}", mergedLogs.getName(), e);
         }
     }
 
@@ -78,16 +74,18 @@ public class LogService {
      */
     public void deleteLocalLogs() {
         File logDir = new File(localLogPath);
-        // delete ocpp file and merge file
-        File[] logFiles = logDir.listFiles((dir, name) -> (name.contains("ocpp-") || name.contains("merge-")) && !"ocpp.log".equals(name));
-        if (checkLogFiles(logDir, logFiles)) {
-            for (File logFile : logFiles) {
-                String fileName = logFile.getName();
-                boolean deleted = logFile.delete();
-                if (deleted) {
-                    log.info("🧹 Successfully deleted log file: {}", fileName);
-                } else {
-                    log.warn("⚠️ Failed to delete log file: {}", fileName);
+        // delete ocpp file and merged file
+        String[] prefixes = {"ocpp-", "merged-"};
+        for (String prefix : prefixes) {
+            File[] logFiles = logDir.listFiles((dir, name) -> name.contains(prefix) && !"ocpp.log".equals(name));
+            if (checkLogFiles(logDir, logFiles)) {
+                for (File logFile : logFiles) {
+                    String fileName = logFile.getName();
+                    if (logFile.delete()) {
+                        log.info("🧹 Successfully deleted log file: {}", fileName);
+                    } else {
+                        log.warn("⚠️ Failed to delete log file: {}", fileName);
+                    }
                 }
             }
         }
@@ -112,8 +110,8 @@ public class LogService {
      * Thorough server chan to send local log to WeChat
      */
     public void sendLogsToWechat() {
-        File mergeLogs = mergeLogs();
-        String formattedContent = formatLogContent(mergeLogs);
+        File mergedLogs = mergeLogs();
+        String formattedContent = formatLogContent(mergedLogs);
         sendLogsToServerChan(formattedContent);
     }
 
@@ -126,7 +124,7 @@ public class LogService {
         try {
             File logDir = new File(localLogPath);
             // Merge ocpp logs
-            File[] logFiles = logDir.listFiles((dir, name) -> (name.contains("ocpp-") && !"ocpp.log".equals(name)));
+            File[] logFiles = logDir.listFiles((dir, name) -> (name.contains("ocpp")));
             if (checkLogFiles(logDir, logFiles)) {
                 // Get today's date
                 String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -141,6 +139,7 @@ public class LogService {
                         writer.newLine();
                     }
                 }
+                log.info("✅ Done! Merged file name: {}", mergedLogFileName);
                 return mergedLogFile;
             }
         } catch (Exception e) {
@@ -155,14 +154,18 @@ public class LogService {
      * @param formattedContent Formatted 5hours log file
      */
     private void sendLogsToServerChan(String formattedContent) {
-        log.info("✅ Sending to server chan...");
-        // Send to server chan app
-        JSONObject payload = new JSONObject();
-        payload.put("text", "## Server Log");
-        payload.put("desp", formattedContent);
-        String url = "https://sctapi.ftqq.com/" + serverChanToken + ".send";
-        HttpUtil.post(url, payload.toString());
-        log.info("✅ Done!");
+        try {
+            log.info("✅ Sending to server chan...");
+            // Send to server chan app
+            JSONObject payload = new JSONObject();
+            payload.put("text", "Server Log");
+            payload.put("desp", formattedContent);
+            String url = "https://sctapi.ftqq.com/" + serverChanToken + ".send";
+            HttpUtil.post(url, payload.toString());
+            log.info("✅ Done!");
+        } catch (Exception e) {
+            log.error("❌ Failed to send WeChat notification", e);
+        }
     }
 
     /**

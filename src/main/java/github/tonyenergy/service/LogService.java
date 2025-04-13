@@ -17,6 +17,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 
 /**
@@ -57,15 +59,15 @@ public class LogService {
      * Upload Merged Logs to Oss, need to merge first, if system shutdown in some case, we can update the logs.
      */
     public void uploadLocalLogsToOss() {
-        File mergedLogs = mergeLogs();
+        File mergedLogFile = mergeLogs();
         String dateFolder = new SimpleDateFormat("yyyy/MM/dd").format(new Date());
-        String objectName = "logs/" + dateFolder + "/" + mergedLogs.getName();
+        String objectName = "logs/" + dateFolder + "/" + mergedLogFile.getName();
         try {
             // upload log file to oss
-            ossClient.putObject(bucketName, objectName, mergedLogs);
+            ossClient.putObject(bucketName, objectName, mergedLogFile);
             log.info("✅ Log file upload successful! Path: {}", objectName);
         } catch (Exception e) {
-            log.error("❌ Failed to upload log file: {}", mergedLogs.getName(), e);
+            log.error("❌ Failed to upload log file: {}", mergedLogFile.getName(), e);
         }
     }
 
@@ -91,6 +93,31 @@ public class LogService {
         }
     }
 
+
+    /**
+     * get Recent 5 hours logs
+     *
+     * @return recent logs
+     */
+    public String getRecentLogs() {
+        File mergedLogFile = mergeLogs();
+        try {
+            log.info("✅ User getting Recent logs...");
+            return new String(FileCopyUtils.copyToByteArray(mergedLogFile), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Thorough server chan to send local log to WeChat
+     */
+    public void sendLogsToWechat() {
+        File mergedLogFile = mergeLogs();
+        String formattedContent = formatLogContent(mergedLogFile);
+        sendLogsToServerChan(formattedContent);
+    }
+
     /**
      * check logDir exist and check logFiles see if it's null
      */
@@ -107,15 +134,6 @@ public class LogService {
     }
 
     /**
-     * Thorough server chan to send local log to WeChat
-     */
-    public void sendLogsToWechat() {
-        File mergedLogs = mergeLogs();
-        String formattedContent = formatLogContent(mergedLogs);
-        sendLogsToServerChan(formattedContent);
-    }
-
-    /**
      * Merge ocpp logs
      *
      * @return merged logs file
@@ -126,6 +144,8 @@ public class LogService {
             // Merge ocpp logs
             File[] logFiles = logDir.listFiles((dir, name) -> (name.contains("ocpp")));
             if (checkLogFiles(logDir, logFiles)) {
+                sortLogFilesByTimestamp(logFiles);
+                log.info("✅ Done!");
                 // Get today's date
                 String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
                 String mergedLogFileName = "merged-log-" + timestamp + ".txt";
@@ -201,6 +221,26 @@ public class LogService {
         }
         sb.append("  \n---");
         return sb.toString();
+    }
+
+    /**
+     * Sort ocpp logfiles by timestamp
+     *
+     * @param logFiles ocpp-xxx
+     */
+    private void sortLogFilesByTimestamp(File[] logFiles) {
+        Arrays.sort(logFiles, Comparator.comparing(file -> {
+            String name = file.getName();
+            try {
+                log.info("✅ Sorting...");
+                String timePart = name.substring(name.indexOf("ocpp-") + 5, name.indexOf(".log"));
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HH");
+                return sdf.parse(timePart);
+            } catch (Exception e) {
+                log.warn("⚠️ Failed to parse timestamp from file name: {}", name, e);
+                return new Date(0);
+            }
+        }));
     }
 
 

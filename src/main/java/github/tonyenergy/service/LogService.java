@@ -233,7 +233,12 @@ public class LogService {
             String name = file.getName();
             try {
                 log.info("✅ Sorting...");
-                String timePart = name.substring(name.indexOf("ocpp-") + 5, name.indexOf(".log"));
+                int prefixIndex = name.indexOf("ocpp-");
+                int suffixIndex = name.indexOf(".log");
+                if (prefixIndex == -1 || suffixIndex == -1 || prefixIndex + 5 >= suffixIndex) {
+                    throw new IllegalArgumentException("⚠️ File name format is invalid: " + name);
+                }
+                String timePart = name.substring(prefixIndex + 5, suffixIndex);
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HH");
                 return sdf.parse(timePart);
             } catch (Exception e) {

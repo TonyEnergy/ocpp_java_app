@@ -237,8 +237,8 @@ public class LogService {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HH");
                 return sdf.parse(timePart);
             } catch (Exception e) {
-                log.warn("⚠️ Failed to parse timestamp from file name: {}", name, e);
-                return new Date(0);
+                log.warn("⚠️ Failed to parse timestamp from file name: {}", name);
+                return new Date(Long.MAX_VALUE);
             }
         }));
     }

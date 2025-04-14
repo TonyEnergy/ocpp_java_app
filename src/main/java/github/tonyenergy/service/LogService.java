@@ -59,6 +59,7 @@ public class LogService {
      * Upload Merged Logs to Oss, need to merge first, if system shutdown in some case, we can update the logs.
      */
     public void uploadLocalLogsToOss() {
+        log.info("✅ Uploading log file to oss...");
         File mergedLogFile = mergeLogs();
         String dateFolder = new SimpleDateFormat("yyyy/MM/dd").format(new Date());
         String objectName = "logs/" + dateFolder + "/" + mergedLogFile.getName();
@@ -229,6 +230,7 @@ public class LogService {
      * @param logFiles ocpp-xxx
      */
     private void sortLogFilesByTimestamp(File[] logFiles) {
+        log.info("✅ Sorting...");
         Arrays.sort(logFiles, Comparator.comparing(file -> {
             String name = file.getName();
             try {

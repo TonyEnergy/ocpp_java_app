@@ -8,6 +8,13 @@ import org.springdoc.core.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Swagger config
+ *
+ * @Author: Tony
+ * @Date: 2025/5/5
+ */
+
 @Configuration
 public class SwaggerConfig {
 

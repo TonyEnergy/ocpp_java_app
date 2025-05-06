@@ -14,6 +14,14 @@ import java.net.URI;
 import java.util.*;
 import java.util.concurrent.*;
 
+
+/**
+ * Web socket server
+ *
+ * @Author: Tony
+ * @Date: 2025/5/5
+ */
+
 @Component
 @Slf4j
 public class WebSocketServer extends TextWebSocketHandler {
@@ -21,12 +29,15 @@ public class WebSocketServer extends TextWebSocketHandler {
     private static final Set<WebSocketSession> sessions = new CopyOnWriteArraySet<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // Store messageId and CompletableFuture Map, use to asynchronous response
+    /**
+     * Store messageId and CompletableFuture Map, use to asynchronous response
+     */
     private final ConcurrentHashMap<String, CompletableFuture<String>> pendingRequests = new ConcurrentHashMap<>();
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        String path = Objects.requireNonNull(session.getUri()).getPath(); // /ocpp/ws/XGJ20241014
+        // /ocpp/ws/XGJ20241014
+        String path = Objects.requireNonNull(session.getUri()).getPath();
         String chargerId = path.substring(path.lastIndexOf('/') + 1);
         log.info("🔗 WebSocket Connected: sessionId={}, chargerId={}", session.getId(), chargerId);
         sessions.add(session);
@@ -35,7 +46,6 @@ public class WebSocketServer extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String payload = message.getPayload();
-//        log.info("📩 Received message from {}: {}", session.getId(), payload);
         JsonNode jsonNode = objectMapper.readTree(payload);
         if (jsonNode.isArray() && jsonNode.size() >= 3) {
             int messageTypeId = jsonNode.get(0).asInt();
@@ -43,7 +53,7 @@ public class WebSocketServer extends TextWebSocketHandler {
             // CallResult
             if (messageTypeId == 2) {
                 CompletableFuture<String> future = new CompletableFuture<>();
-                log.info("ℹ️ Received message of type {}: {}", messageTypeId, payload);
+                log.info("📩 Received message of type {}: {}", messageTypeId, payload);
                 BootNotificationResponse response = new BootNotificationResponse("Accepted", new Date(), 3600);
                 log.info("📤 Response Charger :{}", response.getAll(messageId));
                 pendingRequests.put(messageId, future);
@@ -52,7 +62,7 @@ public class WebSocketServer extends TextWebSocketHandler {
             } else if (messageTypeId == 3) {
                 CompletableFuture<String> future = pendingRequests.remove(messageId);
                 if (future != null) {
-                    log.info("ℹ️ Received message of type {}: {}", messageTypeId, payload);
+                    log.info("📩 Received message of type {}: {}", messageTypeId, payload);
                     pendingRequests.put(messageId, future);
                     future.complete(payload);
                 } else {
@@ -67,7 +77,7 @@ public class WebSocketServer extends TextWebSocketHandler {
                     log.warn("⚠️ No pending request for messageId: {}", messageId);
                 }
             } else {
-                log.info("ℹ️ Received message of type {}: {}", messageTypeId, payload);
+                log.info("📩 Received message of type {}: {}", messageTypeId, payload);
             }
         } else {
             log.warn("⚠️ Invalid OCPP message format: {}", payload);
@@ -80,7 +90,12 @@ public class WebSocketServer extends TextWebSocketHandler {
         log.info("❌ WebSocket connection closed: {}", session.getId());
     }
 
-    // Finding Websocket session through chargerId
+    /**
+     * Finding Websocket session through chargerId
+     *
+     * @param chargerId charger id
+     * @return session
+     */
     public WebSocketSession findSessionByChargerId(String chargerId) {
         for (WebSocketSession session : sessions) {
             if (session.isOpen()) {
@@ -98,7 +113,13 @@ public class WebSocketServer extends TextWebSocketHandler {
         return null;
     }
 
-    // Sending GetConfiguration request，return CompletableFuture to asynchronous get response
+    /**
+     * Sending GetConfiguration request，return CompletableFuture to asynchronous get response
+     *
+     * @param chargerId charger id
+     * @param keys      the key which need to be get
+     * @return
+     */
     public CompletableFuture<String> sendGetConfiguration(String chargerId, String[] keys) {
         try {
             WebSocketSession session = findSessionByChargerId(chargerId);
@@ -120,7 +141,14 @@ public class WebSocketServer extends TextWebSocketHandler {
         return null;
     }
 
-    // Sending ChangeConfiguration request，return CompletableFuture to asynchronous get response
+    /**
+     * Sending ChangeConfiguration request，return CompletableFuture to asynchronous get response
+     *
+     * @param chargerId charger id
+     * @param key       the key which need to be changed
+     * @param value     new value
+     * @return charger response
+     */
     public CompletableFuture<String> sendChangeConfiguration(String chargerId, String key, String value) {
         try {
             WebSocketSession session = findSessionByChargerId(chargerId);

@@ -120,7 +120,16 @@ public class LogService {
     }
 
     /**
+     *
+     */
+
+
+    /**
      * check logDir exist and check logFiles see if it's null
+     *
+     * @param logDir   log directory
+     * @param logFiles log files
+     * @return if directory exist and it has files, return true
      */
     private boolean checkLogFiles(File logDir, File[] logFiles) {
         if (!logDir.exists() || !logDir.isDirectory()) {

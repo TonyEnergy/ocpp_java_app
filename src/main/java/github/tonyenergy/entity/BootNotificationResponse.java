@@ -8,6 +8,12 @@ import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
+/**
+ * BootNotification response
+ *
+ * @Author: Tony
+ * @Date: 2025/4/9
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

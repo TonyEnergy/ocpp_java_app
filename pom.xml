@@ -70,7 +70,7 @@
 
     <build>
         <plugins>
-            <!-- 编译插件 -->
+            <!-- Compile plugins -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -81,14 +81,14 @@
                 </configuration>
             </plugin>
 
-            <!-- 生成可执行 JAR -->
+            <!-- Generate exe JAR -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <executions>
                     <execution>
                         <goals>
-                            <goal>repackage</goal> <!-- 生成 fat jar -->
+                            <goal>repackage</goal> <!-- Generate fat jar -->
                         </goals>
                     </execution>
                 </executions>

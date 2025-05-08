@@ -1,3 +1,6 @@
+server:
+  port: 80
+
 aliyun:
   oss:
     endpoint: "${ALIYUN_OSS_ENDPOINT}"

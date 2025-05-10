@@ -1,5 +1,11 @@
 package github.tonyenergy.entity.common;
 
+import github.tonyenergy.entity.conf.BootNotificationConf;
+import github.tonyenergy.entity.conf.HeartbeatConf;
+import github.tonyenergy.entity.conf.StatusNotificationConf;
+
+import java.util.Date;
+
 /**
  * OCPP Command Enum Code
  *
@@ -10,23 +16,32 @@ public enum OCPPCommandEnumCode {
     /**
      * OCPPCommand, from Open Charge Point Protocol 1.6
      */
-    BootNotification(10001, "BootNotification"),
-    StatusNotification(10002, "StatusNotification"),
-    Heartbeat(10003, "Heartbeat");
+    BootNotification {
+        @Override
+        public String handle(String messageId) {
+            return new BootNotificationConf("Accepted", new Date(), 3600).getResponse(messageId);
+        }
+    },
+    StatusNotification {
+        @Override
+        public String handle(String messageId) {
+            return new StatusNotificationConf().getResponse(messageId);
+        }
+    },
+    Heartbeat {
+        @Override
+        public String handle(String messageId) {
+            return new HeartbeatConf(new Date()).getResponse(messageId);
+        }
+    };
 
-    private final int commandNumber;
-    private final String commandInfo;
+    public abstract String handle(String messageId);
 
-    OCPPCommandEnumCode(int commandNumber, String commandInfo) {
-        this.commandNumber = commandNumber;
-        this.commandInfo = commandInfo;
-    }
-
-    public int getCommandNumber() {
-        return commandNumber;
-    }
-
-    public String getCommandInfo() {
-        return commandInfo;
+    public static OCPPCommandEnumCode from(String name) {
+        try {
+            return OCPPCommandEnumCode.valueOf(name);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

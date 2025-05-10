@@ -27,8 +27,8 @@ public class OCPPController {
     private WebSocketServer webSocketServer;
 
     @GetMapping("/getConfiguration")
-    public String ocppGetConfiguration(@RequestParam String chargerId) {
-        CompletableFuture<String> future = webSocketServer.sendGetConfiguration(chargerId, null);
+    public String ocppGetConfiguration(@RequestParam String chargerId, @RequestParam(required = false) String[] keys) {
+        CompletableFuture<String> future = webSocketServer.sendGetConfiguration(chargerId, keys);
         if (future == null) {
             return null;
         } else {
@@ -54,5 +54,10 @@ public class OCPPController {
                 return "Response Timeout!!!";
             }
         }
+    }
+
+    @GetMapping("/checkSessions")
+    public void checkSessions() {
+        webSocketServer.checkSessions();
     }
 }

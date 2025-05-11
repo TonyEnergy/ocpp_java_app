@@ -56,6 +56,21 @@ public class OCPPController {
         }
     }
 
+    @GetMapping("/reset")
+    public String ocppReset(@RequestParam String chargerId, @RequestParam String type) {
+        CompletableFuture<String> future = webSocketServer.sendReset(chargerId, type);
+        if (future == null) {
+            return null;
+        } else {
+            try {
+                return future.get(10, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                log.info("Response Timeout!!!");
+                return "Response Timeout!!!";
+            }
+        }
+    }
+
     @GetMapping("/checkSessions")
     public void checkSessions() {
         webSocketServer.checkSessions();

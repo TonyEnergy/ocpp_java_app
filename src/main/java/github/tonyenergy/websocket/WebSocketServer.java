@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import github.tonyenergy.entity.common.MessageTypeEnumCode;
 import github.tonyenergy.entity.common.OCPPCommandEnumCode;
+import github.tonyenergy.entity.common.ResetTypeEnumCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
@@ -45,6 +46,13 @@ public class WebSocketServer extends TextWebSocketHandler {
         WEB_SOCKET_SESSIONS.add(session);
     }
 
+    /**
+     * Handle message from charger
+     *
+     * @param session session
+     * @param message message from charger
+     * @throws Exception error
+     */
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String payload = message.getPayload();
@@ -177,6 +185,14 @@ public class WebSocketServer extends TextWebSocketHandler {
         try {
             WebSocketSession session = findSessionByChargerId(chargerId);
             String messageId = UUID.randomUUID().toString();
+//            ConfigurationEnumCode configurationEnumCode = ConfigurationEnumCode.from(keys);
+//            String jsonMessage;
+//            CompletableFuture<String> future = new CompletableFuture<>();
+//            if (configurationEnumCode != null) {
+//                GetConfigurationReq.getRequest(messageId);
+//            }
+//
+
             Map<String, Object> payload = new HashMap<>();
             if (keys != null && keys.length > 0) {
                 payload.put("key", keys);
@@ -217,6 +233,40 @@ public class WebSocketServer extends TextWebSocketHandler {
             pendingRequests.put(messageId, future);
             session.sendMessage(new TextMessage(jsonMessage));
             return future;
+        } catch (IOException e) {
+            log.info("ChargerId: {} is not active", chargerId);
+        }
+        return null;
+    }
+
+    public CompletableFuture<String> sendReset(String chargerId, String type) {
+        try {
+            WebSocketSession session = findSessionByChargerId(chargerId);
+            String messageId = UUID.randomUUID().toString();
+            ResetTypeEnumCode resetType = ResetTypeEnumCode.from(type);
+            String jsonMessage;
+            CompletableFuture<String> future = new CompletableFuture<>();
+            if (resetType != null) {
+                switch (resetType) {
+                    case Hard:
+                        jsonMessage = ResetTypeEnumCode.Hard.handle(messageId);
+                        log.info("📤 Sending Reset to {}: {}", chargerId, jsonMessage);
+                        pendingRequests.put(messageId, future);
+                        session.sendMessage(new TextMessage(jsonMessage));
+                        return future;
+                    case Soft:
+                        jsonMessage = ResetTypeEnumCode.Soft.handle(messageId);
+                        log.info("📤 Sending Reset to {}: {}", chargerId, jsonMessage);
+                        pendingRequests.put(messageId, future);
+                        session.sendMessage(new TextMessage(jsonMessage));
+                        return future;
+                    default:
+                        log.info("ChargerId: {} is not active", chargerId);
+                        break;
+                }
+            } else {
+                log.info("reset type is null");
+            }
         } catch (IOException e) {
             log.info("ChargerId: {} is not active", chargerId);
         }

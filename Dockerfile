@@ -13,5 +13,8 @@ COPY . .
 # 运行 Maven 构建项目
 RUN mvn clean package -DskipTests
 
+# 设置环境变量，指定活动的 Spring 配置文件
+ENV SPRING_PROFILES_ACTIVE=prod
+
 # 运行 Java 应用
 CMD ["java", "-jar", "target/ocpp_java_app-1.0-SNAPSHOT.jar"]

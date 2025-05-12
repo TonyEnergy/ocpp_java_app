@@ -1,6 +1,8 @@
 package github.tonyenergy.config;
 
 import github.tonyenergy.websocket.WebSocketServer;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.*;
 
@@ -12,9 +14,19 @@ import org.springframework.web.socket.config.annotation.*;
  */
 @Configuration
 @EnableWebSocket
+@Slf4j
 public class WebSocketConfig implements WebSocketConfigurer {
 
     private final WebSocketServer webSocketServer;
+
+    @Value("${server.port}")
+    private int port;
+
+    @Value("${render.external-hostname}")
+    private String externalHostname;
+
+    @Value("${spring.profiles.active}")
+    private String activeProfile;
 
     public WebSocketConfig(WebSocketServer webSocketServer) {
         this.webSocketServer = webSocketServer;
@@ -22,8 +34,10 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        // Map path /ws/{chargerId}, support charger visit
+        String protocol = activeProfile.equals("prod") ? "wss" : "ws"; // 根据环境选择协议
         registry.addHandler(webSocketServer, "/ocpp/ws/{chargerId}")
                 .setAllowedOrigins("*"); // allow CORS
+        log.info("🚀 {} WebSocket handler registered at: {}://{}:{}/ocpp/ws/{{chargerId}}",
+                activeProfile.equals("prod") ? "Production" : "Development", protocol, externalHostname, port);
     }
 }

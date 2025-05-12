@@ -2,6 +2,7 @@ package github.tonyenergy.entity.req;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import github.tonyenergy.entity.common.MessageTypeEnumCode;
+import github.tonyenergy.entity.common.OCPPCallEnumCode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,6 +28,7 @@ public class ResetReq {
             Object[] ocppRequest = new Object[]{
                     MessageTypeEnumCode.CALL.getMessageTypeNumber(),
                     uniqueId,
+                    OCPPCallEnumCode.Reset.name(),
                     this
             };
             return mapper.writeValueAsString(ocppRequest);

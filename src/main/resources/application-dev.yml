@@ -1,0 +1,8 @@
+render:
+  external-hostname: localhost
+
+server:
+  port: 80
+
+
+  

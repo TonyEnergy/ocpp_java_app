@@ -1,0 +1,5 @@
+render:
+  external-hostname: ocpp-java-app.onrender.com
+
+server:
+  port: 443

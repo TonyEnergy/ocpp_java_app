@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import github.tonyenergy.entity.common.MessageTypeEnumCode;
-import github.tonyenergy.entity.common.OCPPCommandEnumCode;
+import github.tonyenergy.entity.common.OCPPCallResultEnumCode;
 import github.tonyenergy.entity.common.ResetTypeEnumCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -115,10 +115,9 @@ public class WebSocketServer extends TextWebSocketHandler {
      */
     public String handlePayload(String payload, String messageId, CompletableFuture<String> future) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            Object[] arr = mapper.readValue(payload, Object[].class);
+            Object[] arr = objectMapper.readValue(payload, Object[].class);
             String action = arr[2].toString();
-            OCPPCommandEnumCode command = OCPPCommandEnumCode.from(action);
+            OCPPCallResultEnumCode command = OCPPCallResultEnumCode.from(action);
             if (command != null) {
                 log.info("📤 Response Charger: {}", command.handle(messageId));
                 pendingRequests.put(messageId, future);
@@ -136,7 +135,7 @@ public class WebSocketServer extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         WEB_SOCKET_SESSIONS.remove(session);
-        log.info("❌ WebSocket connection closed: {}", session.getId());
+        log.info("❌ WebSocket connection closed: sessionId={}, status={}", session.getId(), status);
     }
 
     /**
@@ -150,7 +149,6 @@ public class WebSocketServer extends TextWebSocketHandler {
             if (session.isOpen()) {
                 URI uri = session.getUri();
                 if (uri != null) {
-                    // /ocpp/ws/ChargerSN
                     String path = uri.getPath();
                     String currentChargerId = path.substring(path.lastIndexOf('/') + 1);
                     if (chargerId.equals(currentChargerId)) {
@@ -159,6 +157,7 @@ public class WebSocketServer extends TextWebSocketHandler {
                 }
             }
         }
+        log.info("No WebSocket session found for chargerId:{}", chargerId);
         return null;
     }
 
@@ -182,16 +181,15 @@ public class WebSocketServer extends TextWebSocketHandler {
      */
     public CompletableFuture<String> sendGetConfiguration(String chargerId, String[] keys) {
         CompletableFuture<String> future = new CompletableFuture<>();
+        String messageId = UUID.randomUUID().toString();
         try {
             WebSocketSession session = findSessionByChargerId(chargerId);
-            String messageId = UUID.randomUUID().toString();
 //            ConfigurationEnumCode configurationEnumCode = ConfigurationEnumCode.from(keys);
 //            String jsonMessage;
 //            CompletableFuture<String> future = new CompletableFuture<>();
 //            if (configurationEnumCode != null) {
 //                GetConfigurationReq.getRequest(messageId);
 //            }
-//
 
             Map<String, Object> payload = new HashMap<>();
             if (keys != null && keys.length > 0) {
@@ -203,6 +201,7 @@ public class WebSocketServer extends TextWebSocketHandler {
             session.sendMessage(new TextMessage(jsonMessage));
             log.info("📤 Sending GetConfiguration to {}: {}", chargerId, jsonMessage);
         } catch (Exception e) {
+            log.error("Error sending message to chargerId: {}, messageId: {}", chargerId, messageId, e);
             log.error("❌ ChargerId: {} is not active or message send failed", chargerId);
             future.complete("❌ ChargerId is not active or failed to send message: " + chargerId);
         }
@@ -218,9 +217,9 @@ public class WebSocketServer extends TextWebSocketHandler {
      * @return charger response
      */
     public CompletableFuture<String> sendChangeConfiguration(String chargerId, String key, String value) {
+        String messageId = UUID.randomUUID().toString();
         try {
             WebSocketSession session = findSessionByChargerId(chargerId);
-            String messageId = UUID.randomUUID().toString();
             Map<String, Object> payload = new HashMap<>();
             if (key != null && value != null) {
                 payload.put("key", key);
@@ -234,6 +233,7 @@ public class WebSocketServer extends TextWebSocketHandler {
             session.sendMessage(new TextMessage(jsonMessage));
             return future;
         } catch (IOException e) {
+            log.error("Error sending message to chargerId: {}, messageId: {}", chargerId, messageId, e);
             log.info("ChargerId: {} is not active", chargerId);
         }
         return null;
@@ -261,14 +261,14 @@ public class WebSocketServer extends TextWebSocketHandler {
                         session.sendMessage(new TextMessage(jsonMessage));
                         return future;
                     default:
-                        log.info("ChargerId: {} is not active", chargerId);
+                        log.error("Invalid reset type: {}", type);
                         break;
                 }
             } else {
-                log.info("reset type is null");
+                log.error("⚠️ Reset type is null");
             }
         } catch (IOException e) {
-            log.info("ChargerId: {} is not active", chargerId);
+            log.error("ChargerId: {} is not active", chargerId);
         }
         return null;
     }

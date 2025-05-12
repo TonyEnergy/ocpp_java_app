@@ -7,12 +7,12 @@ import github.tonyenergy.entity.conf.StatusNotificationConf;
 import java.util.Date;
 
 /**
- * OCPP Command Enum Code
+ * OCPP Call Result Enum Code
  *
  * @author Tony
  * @date 2025/5/8
  */
-public enum OCPPCommandEnumCode {
+public enum OCPPCallResultEnumCode {
     /**
      * OCPPCommand, from Open Charge Point Protocol 1.6
      */
@@ -37,9 +37,10 @@ public enum OCPPCommandEnumCode {
 
     public abstract String handle(String messageId);
 
-    public static OCPPCommandEnumCode from(String name) {
+
+    public static OCPPCallResultEnumCode from(String name) {
         try {
-            return OCPPCommandEnumCode.valueOf(name);
+            return OCPPCallResultEnumCode.valueOf(name);
         } catch (Exception e) {
             return null;
         }

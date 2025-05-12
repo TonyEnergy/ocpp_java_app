@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -29,15 +31,20 @@ public class OCPPController {
     @GetMapping("/getConfiguration")
     public String ocppGetConfiguration(@RequestParam String chargerId, @RequestParam(required = false) String[] keys) {
         CompletableFuture<String> future = webSocketServer.sendGetConfiguration(chargerId, keys);
-        if (future == null) {
-            return null;
-        } else {
+        if (future != null) {
             try {
+                // Wait for the response with a timeout of 10 seconds
                 return future.get(10, TimeUnit.SECONDS);
-            } catch (Exception e) {
-                log.info("Response Timeout!!!");
+            } catch (TimeoutException e) {
+                log.error("❌ Response Timeout for chargerId: {}", chargerId);
                 return "Response Timeout!!!";
+            } catch (InterruptedException | ExecutionException e) {
+                log.error("❌ Error while getting response for chargerId: {}", chargerId);
+                return "Error while getting response.";
             }
+        } else {
+            log.warn("⚠️ ChargerId: {} not active or failed to send message", chargerId);
+            return "Charger not active or failed to send message.";
         }
     }
 
@@ -45,13 +52,18 @@ public class OCPPController {
     public String ocppChangeConfiguration(@RequestParam String chargerId, @RequestParam String key, @RequestParam String value) {
         CompletableFuture<String> future = webSocketServer.sendChangeConfiguration(chargerId, key, value);
         if (future == null) {
-            return null;
+            log.warn("⚠️ ChargerId: {} not active or failed to send message", chargerId);
+            return "Charger not active or failed to send message.";
         } else {
             try {
+                // Wait for the response with a timeout of 10 seconds
                 return future.get(10, TimeUnit.SECONDS);
-            } catch (Exception e) {
-                log.info("Response Timeout!!!");
+            } catch (TimeoutException e) {
+                log.error("❌ Response Timeout for chargerId: {}", chargerId);
                 return "Response Timeout!!!";
+            } catch (InterruptedException | ExecutionException e) {
+                log.error("❌ Error while getting response for chargerId: {}", chargerId);
+                return "Error while getting response.";
             }
         }
     }
@@ -60,13 +72,18 @@ public class OCPPController {
     public String ocppReset(@RequestParam String chargerId, @RequestParam String type) {
         CompletableFuture<String> future = webSocketServer.sendReset(chargerId, type);
         if (future == null) {
-            return null;
+            log.warn("⚠️ ChargerId: {} not active or failed to send message", chargerId);
+            return "Charger not active or failed to send message.";
         } else {
             try {
+                // Wait for the response with a timeout of 10 seconds
                 return future.get(10, TimeUnit.SECONDS);
-            } catch (Exception e) {
-                log.info("Response Timeout!!!");
+            } catch (TimeoutException e) {
+                log.error("❌ Response Timeout for chargerId: {}", chargerId);
                 return "Response Timeout!!!";
+            } catch (InterruptedException | ExecutionException e) {
+                log.error("❌ Error while getting response for chargerId: {}", chargerId);
+                return "Error while getting response.";
             }
         }
     }

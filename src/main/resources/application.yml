@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: dev  # 默认使用 dev 配置，生产环境可以手动修改或通过环境变量设置
+    active: dev  # default using dev env
 
 aliyun:
   oss:

@@ -1,6 +1,10 @@
 package github.tonyenergy.service;
 
-import java.io.File;
+import github.tonyenergy.entity.ChargerCard;
+import github.tonyenergy.entity.vo.ChargerCardVo;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
+
 import java.nio.file.Path;
 import java.util.List;
 
@@ -12,22 +16,16 @@ import java.util.List;
  */
 public interface ChargerService {
 
-    /**
-     * Uploads a charger card file to OSS.
-     *
-     * @param filename The name of the file to be uploaded (including the file extension).
-     * @param file     The file object representing the charger card data to be uploaded.
-     */
-    void uploadChargerCardToOss(String filename, File file);
+    ResponseEntity<?> addCharger(@RequestBody ChargerCardVo chargerCardVo);
 
     /**
      * Lists all charger card files under a specified prefix in OSS, optionally filtered by suffix.
      *
-     * @param prefix The prefix to filter the files (e.g., "/data/chargerCard/").
+     * @param prefix The prefix to filter the files (e.g., "/data/charger_card/").
      * @param end    The suffix to filter the files (e.g., ".json", ".log").
      * @return A list of filenames that match the prefix and suffix criteria.
      */
-    List<String> listChargerFiles(String prefix, String end);
+    List<String> listOssChargerFileNames(String prefix, String end);
 
     /**
      * Downloads charger card files from OSS to a local directory.
@@ -37,4 +35,20 @@ public interface ChargerService {
      * @param fileName The name of the file to be downloaded.
      */
     void downloadChargerCardFiles(Path dataDir, String prefix, String fileName);
+
+    /**
+     * Get charger card entity through charger id
+     *
+     * @param chargerId charger id
+     * @return charger card entity
+     */
+    ChargerCard getChargerCardByChargerId(String chargerId);
+
+    /**
+     * Delete charger card oss file and local file through charger id
+     *
+     * @param chargerId charger id
+     * @return if delete successful, return true
+     */
+    Boolean deleteChargerByChargerId(String chargerId);
 }

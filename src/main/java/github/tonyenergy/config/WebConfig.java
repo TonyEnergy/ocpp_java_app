@@ -4,6 +4,8 @@ import github.tonyenergy.websocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.socket.config.annotation.*;
 
 /**
@@ -15,7 +17,7 @@ import org.springframework.web.socket.config.annotation.*;
 @Configuration
 @EnableWebSocket
 @Slf4j
-public class WebSocketConfig implements WebSocketConfigurer {
+public class WebConfig implements WebSocketConfigurer, WebMvcConfigurer {
 
     private final WebSocketServer webSocketServer;
 
@@ -28,16 +30,36 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Value("${spring.profiles.active}")
     private String activeProfile;
 
-    public WebSocketConfig(WebSocketServer webSocketServer) {
+    public WebConfig(WebSocketServer webSocketServer) {
         this.webSocketServer = webSocketServer;
     }
 
+    /**
+     * Web socket CORS config
+     *
+     * @param registry registry
+     */
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        String protocol = activeProfile.equals("prod") ? "wss" : "ws"; // 根据环境选择协议
+        String protocol = activeProfile.equals("prod") ? "wss" : "ws";
         registry.addHandler(webSocketServer, "/ocpp/ws/{chargerId}")
-                .setAllowedOrigins("*"); // allow CORS
+                .setAllowedOrigins("*");
         log.info("🚀 {} WebSocket handler registered at: {}://{}:{}/ocpp/ws/{{chargerId}}",
                 activeProfile.equals("prod") ? "Production" : "Development", protocol, externalHostname, port);
+    }
+
+    /**
+     * HTTP CORS config
+     *
+     * @param registry registry
+     */
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("*")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(false)
+                .maxAge(3600);
     }
 }

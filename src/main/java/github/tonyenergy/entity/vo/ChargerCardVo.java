@@ -1,4 +1,4 @@
-package github.tonyenergy.entity;
+package github.tonyenergy.entity.vo;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,15 +17,12 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 @NoArgsConstructor
 @Slf4j
-public class ChargerCard {
+public class ChargerCardVo {
     public String chargerId;
     public int ratedCurrent;
     public int ratedPower;
     public int ratedVoltage;
     public String type;
-    public String status;
-    public String firmwareVersion;
-    public Boolean offlineEnable;
 
     public String toJson() {
         ObjectMapper mapper = new ObjectMapper();

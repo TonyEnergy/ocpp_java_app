@@ -31,7 +31,7 @@ public class ChargerInitializer implements ApplicationRunner {
         if (!Files.exists(dataDir)) {
             Files.createDirectories(dataDir);
         }
-        List<String> chargerFiles = chargerService.listChargerFiles(prefix, end);
+        List<String> chargerFiles = chargerService.listOssChargerFileNames(prefix, end);
         for (String filename : chargerFiles) {
             chargerService.downloadChargerCardFiles(dataDir, prefix, filename);
         }

@@ -14,7 +14,7 @@ public interface OssService {
     /**
      * Uploads a file to OSS.
      *
-     * @param objectName  The object name (path) in OSS, e.g., "data/chargerCard/xxx.json".
+     * @param objectName  The object name (path) in OSS, e.g., "data/charger_card/xxx.json".
      * @param inputStream The file's input stream.
      * @param contentType The content type (e.g., "application/json", "image/png").
      * @return The URL to access the uploaded file (if accessible).

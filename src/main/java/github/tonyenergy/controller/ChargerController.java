@@ -1,20 +1,16 @@
 package github.tonyenergy.controller;
 
-import github.tonyenergy.entity.ChargerCard;
+import github.tonyenergy.entity.vo.ChargerCardVo;
 import github.tonyenergy.service.ChargerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.List;
 
 /**
  * Charger controller
@@ -30,26 +26,48 @@ public class ChargerController {
     @Autowired
     private ChargerService chargerService;
 
+    /**
+     * create a charger
+     *
+     * @param chargerCardVo charger card vo
+     * @return message
+     */
     @PostMapping("/addCharger")
-    public ResponseEntity<?> addCharger(@RequestBody ChargerCard chargerCard) throws IOException {
-        // Under root dir "data/charger_card" folder
-        Path dataDir = Paths.get(System.getProperty("user.dir"), "data", "charger_card");
-        if (!Files.exists(dataDir)) {
-            Files.createDirectories(dataDir);
-        }
-        String chargerId = chargerCard.getChargerId();
-        String filename = "charger_" + chargerId + ".json";
-        // Check if we have same chargerId file
-        Path filePath = dataDir.resolve(filename);
-        if (Files.exists(filePath)) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("This charger already exist: " + chargerId);
-        }
-        // Save file to local
-        String json = chargerCard.toJson();
-        Files.write(filePath, json.getBytes(StandardCharsets.UTF_8));
-        log.info("Save path: {}", filePath.toAbsolutePath());
-        // Upload local file to OSS
-        chargerService.uploadChargerCardToOss(filename, filePath.toFile());
-        return ResponseEntity.ok("saved");
+    public ResponseEntity<?> addCharger(@RequestBody ChargerCardVo chargerCardVo) {
+        return chargerService.addCharger(chargerCardVo);
+    }
+
+    /**
+     * List all charger file name from oss
+     *
+     * @return file name list
+     */
+    @PostMapping("/listOssChargerFileNames")
+    public List<String> listOssChargerFileNames() {
+        String prefix = "data/charger_card/";
+        String end = ".json";
+        return chargerService.listOssChargerFileNames(prefix, end);
+    }
+
+    /**
+     * get charger card by charger id
+     *
+     * @param chargerId charger id
+     * @return charger card json string
+     */
+    @PostMapping("/getChargerCardByChargerId")
+    public String getChargerCardByChargerId(String chargerId) {
+        return chargerService.getChargerCardByChargerId(chargerId).toJson();
+    }
+
+    /**
+     * delete charger by charger id
+     *
+     * @param chargerId charger id
+     * @return if delete oss and local file successful, return true
+     */
+    @DeleteMapping("/deleteChargerByChargerId")
+    public Boolean deleteChargerByChargerId(String chargerId) {
+        return chargerService.deleteChargerByChargerId(chargerId);
     }
 }

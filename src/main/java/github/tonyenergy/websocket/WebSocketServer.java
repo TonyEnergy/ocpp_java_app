@@ -7,7 +7,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import github.tonyenergy.entity.common.MessageTypeEnumCode;
 import github.tonyenergy.entity.common.OCPPCallResultEnumCode;
 import github.tonyenergy.entity.common.ResetTypeEnumCode;
+import github.tonyenergy.service.ChargerService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
@@ -37,14 +39,18 @@ public class WebSocketServer extends TextWebSocketHandler {
      */
     private final ConcurrentHashMap<String, CompletableFuture<String>> pendingRequests = new ConcurrentHashMap<>();
 
+    @Autowired
+    public ChargerService chargerService;
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
-        // /ocpp/ws/XGJ20241014
-        String path = Objects.requireNonNull(session.getUri()).getPath();
-        String chargerId = path.substring(path.lastIndexOf('/') + 1);
+        String chargerId = (String) session.getAttributes().get("chargerId");
         log.info("🔗 WebSocket Connected: sessionId={}, chargerId={}", session.getId(), chargerId);
         WEB_SOCKET_SESSIONS.add(session);
+        //
+        chargerService.connect(chargerId);
     }
+
 
     /**
      * Handle message from charger
@@ -239,6 +245,13 @@ public class WebSocketServer extends TextWebSocketHandler {
         return null;
     }
 
+    /**
+     * Reset charger (Soft and Hard)
+     *
+     * @param chargerId charger id
+     * @param type      hard and soft
+     * @return charger response
+     */
     public CompletableFuture<String> sendReset(String chargerId, String type) {
         try {
             WebSocketSession session = findSessionByChargerId(chargerId);

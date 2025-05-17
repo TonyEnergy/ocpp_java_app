@@ -1,5 +1,6 @@
 package github.tonyenergy.config;
 
+import github.tonyenergy.service.ChargerService;
 import github.tonyenergy.websocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,7 +31,10 @@ public class WebConfig implements WebSocketConfigurer, WebMvcConfigurer {
     @Value("${spring.profiles.active}")
     private String activeProfile;
 
-    public WebConfig(WebSocketServer webSocketServer) {
+    private final ChargerService chargerService;
+
+    public WebConfig(ChargerService chargerService, WebSocketServer webSocketServer) {
+        this.chargerService = chargerService;
         this.webSocketServer = webSocketServer;
     }
 
@@ -41,11 +45,12 @@ public class WebConfig implements WebSocketConfigurer, WebMvcConfigurer {
      */
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        String protocol = activeProfile.equals("prod") ? "wss" : "ws";
+        String protocol = "prod".equals(activeProfile) ? "wss" : "ws";
         registry.addHandler(webSocketServer, "/ocpp/ws/{chargerId}")
+                .addInterceptors(new ChargerHandshakeInterceptor(chargerService))
                 .setAllowedOrigins("*");
         log.info("🚀 {} WebSocket handler registered at: {}://{}:{}/ocpp/ws/{{chargerId}}",
-                activeProfile.equals("prod") ? "Production" : "Development", protocol, externalHostname, port);
+                "prod".equals(activeProfile) ? "Production" : "Development", protocol, externalHostname, port);
     }
 
     /**

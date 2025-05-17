@@ -241,7 +241,7 @@ public class LogServiceImpl implements LogService {
                 int prefixIndex = name.indexOf("ocpp-");
                 int suffixIndex = name.indexOf(".log");
                 if (prefixIndex == -1 || suffixIndex == -1 || prefixIndex + 5 >= suffixIndex) {
-                    throw new IllegalArgumentException("⚠️ File name format is invalid: " + name);
+                    log.warn("⚠️ File name format is invalid: {}", name);
                 }
                 String timePart = name.substring(prefixIndex + 5, suffixIndex);
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HH");
@@ -251,7 +251,6 @@ public class LogServiceImpl implements LogService {
                 return new Date(Long.MAX_VALUE);
             }
         }));
-        Arrays.stream(logFiles).forEach(f -> log.info("📄 {}", f.getName()));
     }
 
 

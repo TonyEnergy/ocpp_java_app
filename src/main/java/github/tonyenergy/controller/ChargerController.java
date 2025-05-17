@@ -1,6 +1,7 @@
 package github.tonyenergy.controller;
 
 import github.tonyenergy.entity.vo.ChargerCardVo;
+import github.tonyenergy.entity.ChargerCard;
 import github.tonyenergy.service.ChargerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,8 +57,8 @@ public class ChargerController {
      * @return charger card json string
      */
     @PostMapping("/getChargerCardByChargerId")
-    public String getChargerCardByChargerId(String chargerId) {
-        return chargerService.getChargerCardByChargerId(chargerId).toJson();
+    public ChargerCard getChargerCardByChargerId(String chargerId) {
+        return chargerService.getChargerCardByChargerId(chargerId);
     }
 
     /**
@@ -69,5 +70,15 @@ public class ChargerController {
     @DeleteMapping("/deleteChargerByChargerId")
     public Boolean deleteChargerByChargerId(String chargerId) {
         return chargerService.deleteChargerByChargerId(chargerId);
+    }
+
+    /**
+     * get all local charger cards
+     *
+     * @return return all local charger cards
+     */
+    @PostMapping("/getAllLocalChargerCards")
+    public List<ChargerCard> getAllLocalChargerCards() {
+        return chargerService.getAllLocalChargerCards();
     }
 }

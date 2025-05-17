@@ -17,10 +17,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -97,6 +95,38 @@ public class ChargerServiceImpl implements ChargerService {
         return ossService.listFiles(prefix, end);
     }
 
+
+    /**
+     * list local charger id
+     *
+     * @return charger id list
+     */
+    @Override
+    public List<String> listLocalChargerId() {
+        List<String> chargerIds = new ArrayList<>();
+        File folder = new File("data/charger_card");
+        if (folder.exists() && folder.isDirectory()) {
+            File[] files = folder.listFiles((dir, name) -> name.startsWith("charger_") && name.endsWith(".json"));
+            if (files != null) {
+                for (File file : files) {
+                    String fileName = file.getName();
+                    // get charger id part
+                    String chargerId = fileName.substring("charger_".length(), fileName.length() - ".json".length());
+                    chargerIds.add(chargerId);
+                }
+            }
+        }
+        return chargerIds;
+    }
+
+
+    /**
+     * download charger card file from oss
+     *
+     * @param dataDir  The local directory where the charger card files will be saved.
+     * @param prefix   The prefix used to filter the charger card files in OSS.
+     * @param fileName The name of the file to be downloaded.
+     */
     public void downloadChargerCardFiles(Path dataDir, String prefix, String fileName) {
         try {
             InputStream input = ossService.downloadFile(prefix + fileName);
@@ -159,5 +189,40 @@ public class ChargerServiceImpl implements ChargerService {
         }
         // if oss file and local file delete success, return true
         return localDeleted && ossDeleted;
+    }
+
+
+    /**
+     * get all local charger cards
+     *
+     * @return charger card list
+     */
+    @Override
+    public List<ChargerCard> getAllLocalChargerCards() {
+        List<ChargerCard> list = new ArrayList<>();
+        Path folderPath = Paths.get(System.getProperty("user.dir"), "data", "charger_card");
+
+        try {
+            DirectoryStream<Path> stream = Files.newDirectoryStream(folderPath, "charger_*.json");
+            for (Path filePath : stream) {
+                String content = new String(Files.readAllBytes(filePath));
+                ChargerCard card = JSON.parseObject(content, ChargerCard.class);
+                list.add(card);
+            }
+        } catch (IOException | DirectoryIteratorException e) {
+            log.error("Get all local charger cards error...");
+        }
+        log.info("User get charger list, {}", list);
+        return list;
+    }
+
+    /**
+     * if charger connect successful, print log
+     *
+     * @param chargerId charger id
+     */
+    @Override
+    public void connect(String chargerId) {
+        log.info("Charger: {} connect to the server", chargerId);
     }
 }

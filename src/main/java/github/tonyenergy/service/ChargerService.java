@@ -16,6 +16,12 @@ import java.util.List;
  */
 public interface ChargerService {
 
+    /**
+     * add new charger, store in the local file and upload to oss
+     *
+     * @param chargerCardVo charger card vo
+     * @return success or fail
+     */
     ResponseEntity<?> addCharger(@RequestBody ChargerCardVo chargerCardVo);
 
     /**
@@ -26,6 +32,13 @@ public interface ChargerService {
      * @return A list of filenames that match the prefix and suffix criteria.
      */
     List<String> listOssChargerFileNames(String prefix, String end);
+
+    /**
+     * list all local charger id
+     *
+     * @return charger id list
+     */
+    List<String> listLocalChargerId();
 
     /**
      * Downloads charger card files from OSS to a local directory.
@@ -51,4 +64,18 @@ public interface ChargerService {
      * @return if delete successful, return true
      */
     Boolean deleteChargerByChargerId(String chargerId);
+
+    /**
+     * get all local charger cards
+     *
+     * @return charger card list
+     */
+    List<ChargerCard> getAllLocalChargerCards();
+
+    /**
+     * if charger connect successful, print log
+     *
+     * @param chargerId charger id
+     */
+    void connect(String chargerId);
 }

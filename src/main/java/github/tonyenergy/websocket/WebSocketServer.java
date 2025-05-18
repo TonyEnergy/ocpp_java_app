@@ -7,6 +7,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import github.tonyenergy.entity.common.MessageTypeEnumCode;
 import github.tonyenergy.entity.common.OCPPCallResultEnumCode;
 import github.tonyenergy.entity.common.ResetTypeEnumCode;
+import github.tonyenergy.entity.req.ChangeConfigurationReq;
+import github.tonyenergy.entity.req.GetConfigurationReq;
+import github.tonyenergy.entity.req.ResetReq;
 import github.tonyenergy.service.ChargerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +50,7 @@ public class WebSocketServer extends TextWebSocketHandler {
         String chargerId = (String) session.getAttributes().get("chargerId");
         log.info("🔗 WebSocket Connected: sessionId={}, chargerId={}", session.getId(), chargerId);
         WEB_SOCKET_SESSIONS.add(session);
-        //
+        // log connect success data
         chargerService.connect(chargerId);
     }
 
@@ -163,13 +166,13 @@ public class WebSocketServer extends TextWebSocketHandler {
                 }
             }
         }
-        log.info("No WebSocket session found for chargerId:{}", chargerId);
+        log.warn("⚠️ No WebSocket session found for chargerId:{}", chargerId);
         return null;
     }
 
     public void checkSessions() {
         if (WEB_SOCKET_SESSIONS.isEmpty()) {
-            log.info("There have no sessions");
+            log.info("⚠️ There have no sessions");
         } else {
             for (WebSocketSession session : WEB_SOCKET_SESSIONS) {
                 log.info("session uri: {}", session.getUri());
@@ -190,26 +193,19 @@ public class WebSocketServer extends TextWebSocketHandler {
         String messageId = UUID.randomUUID().toString();
         try {
             WebSocketSession session = findSessionByChargerId(chargerId);
-//            ConfigurationEnumCode configurationEnumCode = ConfigurationEnumCode.from(keys);
-//            String jsonMessage;
-//            CompletableFuture<String> future = new CompletableFuture<>();
-//            if (configurationEnumCode != null) {
-//                GetConfigurationReq.getRequest(messageId);
-//            }
-
-            Map<String, Object> payload = new HashMap<>();
-            if (keys != null && keys.length > 0) {
-                payload.put("key", keys);
-            }
-            Object[] ocppMessage = new Object[]{2, messageId, "GetConfiguration", payload};
+            Object[] ocppMessage = new GetConfigurationReq(keys).getRequest(messageId);
             String jsonMessage = objectMapper.writeValueAsString(ocppMessage);
             pendingRequests.put(messageId, future);
-            session.sendMessage(new TextMessage(jsonMessage));
-            log.info("📤 Sending GetConfiguration to {}: {}", chargerId, jsonMessage);
-        } catch (Exception e) {
-            log.error("Error sending message to chargerId: {}, messageId: {}", chargerId, messageId, e);
-            log.error("❌ ChargerId: {} is not active or message send failed", chargerId);
-            future.complete("❌ ChargerId is not active or failed to send message: " + chargerId);
+            if (session != null) {
+                session.sendMessage(new TextMessage(jsonMessage));
+                log.info("📤 Sending GetConfiguration to {}: {}", chargerId, jsonMessage);
+            } else {
+                log.error("❌ ChargerId: {} is not active or message send failed", chargerId);
+                future.complete("❌ ChargerId:" + chargerId + "is not active or message send failed");
+            }
+        } catch (IOException ioException) {
+            log.error("❌ Error sending message to chargerId: {}, messageId: {}", chargerId, messageId, ioException);
+            future.complete("❌ Error sending message to chargerId: " + chargerId + "messageId: " + messageId);
         }
         return future;
     }
@@ -224,23 +220,23 @@ public class WebSocketServer extends TextWebSocketHandler {
      */
     public CompletableFuture<String> sendChangeConfiguration(String chargerId, String key, String value) {
         String messageId = UUID.randomUUID().toString();
+        CompletableFuture<String> future = new CompletableFuture<>();
         try {
             WebSocketSession session = findSessionByChargerId(chargerId);
-            Map<String, Object> payload = new HashMap<>();
-            if (key != null && value != null) {
-                payload.put("key", key);
-                payload.put("value", value);
-            }
-            Object[] ocppMessage = new Object[]{2, messageId, "ChangeConfiguration", payload};
+            Object[] ocppMessage = new ChangeConfigurationReq(key, value).getRequest(messageId);
             String jsonMessage = objectMapper.writeValueAsString(ocppMessage);
-            log.info("📤 Sending ChangeConfiguration to {}: {}", chargerId, jsonMessage);
-            CompletableFuture<String> future = new CompletableFuture<>();
             pendingRequests.put(messageId, future);
-            session.sendMessage(new TextMessage(jsonMessage));
+            if (session != null) {
+                session.sendMessage(new TextMessage(jsonMessage));
+                log.info("📤 Sending ChangeConfiguration to {}: {}", chargerId, jsonMessage);
+            } else {
+                log.error("❌ ChargerId: {} is not active or message send failed", chargerId);
+                future.complete("❌ ChargerId:" + chargerId + "is not active or message send failed");
+            }
             return future;
-        } catch (IOException e) {
-            log.error("Error sending message to chargerId: {}, messageId: {}", chargerId, messageId, e);
-            log.info("ChargerId: {} is not active", chargerId);
+        } catch (IOException ioException) {
+            log.error("❌ Error sending message to chargerId: {}, messageId: {}", chargerId, messageId, ioException);
+            future.complete("❌ Error sending message to chargerId: " + chargerId + "messageId: " + messageId);
         }
         return null;
     }
@@ -249,39 +245,33 @@ public class WebSocketServer extends TextWebSocketHandler {
      * Reset charger (Soft and Hard)
      *
      * @param chargerId charger id
-     * @param type      hard and soft
+     * @param type hard and soft
      * @return charger response
      */
     public CompletableFuture<String> sendReset(String chargerId, String type) {
+        String messageId = UUID.randomUUID().toString();
+        CompletableFuture<String> future = new CompletableFuture<>();
+        WebSocketSession session = findSessionByChargerId(chargerId);
+        ResetTypeEnumCode resetType = ResetTypeEnumCode.from(type);
         try {
-            WebSocketSession session = findSessionByChargerId(chargerId);
-            String messageId = UUID.randomUUID().toString();
-            ResetTypeEnumCode resetType = ResetTypeEnumCode.from(type);
-            String jsonMessage;
-            CompletableFuture<String> future = new CompletableFuture<>();
             if (resetType != null) {
-                switch (resetType) {
-                    case Hard:
-                        jsonMessage = ResetTypeEnumCode.Hard.handle(messageId);
-                        log.info("📤 Sending Reset to {}: {}", chargerId, jsonMessage);
-                        pendingRequests.put(messageId, future);
-                        session.sendMessage(new TextMessage(jsonMessage));
-                        return future;
-                    case Soft:
-                        jsonMessage = ResetTypeEnumCode.Soft.handle(messageId);
-                        log.info("📤 Sending Reset to {}: {}", chargerId, jsonMessage);
-                        pendingRequests.put(messageId, future);
-                        session.sendMessage(new TextMessage(jsonMessage));
-                        return future;
-                    default:
-                        log.error("Invalid reset type: {}", type);
-                        break;
+                Object[] ocppMessage = new ResetReq(resetType.name()).getRequest(messageId);
+                String jsonMessage = objectMapper.writeValueAsString(ocppMessage);
+                pendingRequests.put(messageId, future);
+                if (session != null) {
+                    session.sendMessage(new TextMessage(jsonMessage));
+                    log.info("📤 Sending Reset to {}: {}", chargerId, jsonMessage);
+                } else {
+                    log.error("❌ ChargerId: {} is not active or message send failed", chargerId);
+                    future.complete("❌ ChargerId:" + chargerId + "is not active or message send failed");
                 }
+                return future;
             } else {
-                log.error("⚠️ Reset type is null");
+                log.warn("⚠️ Reset type is wrong");
             }
-        } catch (IOException e) {
-            log.error("ChargerId: {} is not active", chargerId);
+        } catch (IOException ioException) {
+            log.error("❌ Error sending message to chargerId: {}, messageId: {}", chargerId, messageId, ioException);
+            future.complete("❌ Error sending message to chargerId: " + chargerId + "messageId: " + messageId);
         }
         return null;
     }

@@ -1,7 +1,7 @@
 package github.tonyenergy.entity.req;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import github.tonyenergy.entity.common.MessageTypeEnumCode;
+import github.tonyenergy.entity.common.OCPPCallEnumCode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,18 +20,12 @@ public class GetConfigurationReq {
 
     private String[] keys;
 
-    public String getRequest(String uniqueId) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            Object[] ocppRequest = new Object[]{
-                    MessageTypeEnumCode.CALL.getMessageTypeNumber(),
-                    uniqueId,
-                    this
-            };
-            return mapper.writeValueAsString(ocppRequest);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+    public Object[] getRequest(String uniqueId) {
+        return new Object[]{
+                MessageTypeEnumCode.CALL.getMessageTypeNumber(),
+                uniqueId,
+                OCPPCallEnumCode.GetConfiguration.name(),
+                this
+        };
     }
 }

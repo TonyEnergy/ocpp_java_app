@@ -5,30 +5,30 @@ import github.tonyenergy.entity.common.OCPPCallEnumCode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 
 /**
- * ResetReq
+ * Change configuration request
  *
  * @author Tony
- * @date 2025/5/11
+ * @date 2025/5/18
  */
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Slf4j
-public class ResetReq {
+public class ChangeConfigurationReq {
 
-    private String type;
+    private String key;
+
+    private String value;
 
     public Object[] getRequest(String uniqueId) {
         return new Object[]{
                 MessageTypeEnumCode.CALL.getMessageTypeNumber(),
                 uniqueId,
-                OCPPCallEnumCode.Reset.name(),
+                OCPPCallEnumCode.ChangeConfiguration.name(),
                 this
         };
     }
+
 }

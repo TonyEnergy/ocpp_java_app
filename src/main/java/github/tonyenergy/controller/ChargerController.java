@@ -5,11 +5,9 @@ import github.tonyenergy.entity.ChargerCard;
 import github.tonyenergy.service.ChargerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -28,7 +26,7 @@ public class ChargerController {
     private ChargerService chargerService;
 
     /**
-     * create a charger
+     * Create a charger
      *
      * @param chargerCardVo charger card vo
      * @return message
@@ -39,7 +37,7 @@ public class ChargerController {
     }
 
     /**
-     * List all charger file name from oss
+     * List all charger file name from oss, use for restore data to local
      *
      * @return file name list
      */
@@ -51,7 +49,7 @@ public class ChargerController {
     }
 
     /**
-     * get charger card by charger id
+     * Get charger card by charger id
      *
      * @param chargerId charger id
      * @return charger card json string
@@ -62,18 +60,23 @@ public class ChargerController {
     }
 
     /**
-     * delete charger by charger id
+     * Delete charger by charger id
      *
      * @param chargerId charger id
      * @return if delete oss and local file successful, return true
      */
-    @DeleteMapping("/deleteChargerByChargerId")
-    public Boolean deleteChargerByChargerId(String chargerId) {
-        return chargerService.deleteChargerByChargerId(chargerId);
+    @DeleteMapping("/charger/{chargerId}")
+    public ResponseEntity<Boolean> deleteChargerByChargerId(@PathVariable String chargerId) {
+        boolean success = chargerService.deleteChargerByChargerId(chargerId);
+        if (success) {
+            return ResponseEntity.ok(true);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
+        }
     }
 
     /**
-     * get all local charger cards
+     * Get all local charger cards
      *
      * @return return all local charger cards
      */

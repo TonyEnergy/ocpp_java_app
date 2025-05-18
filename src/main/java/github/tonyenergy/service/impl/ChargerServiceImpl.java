@@ -172,8 +172,15 @@ public class ChargerServiceImpl implements ChargerService {
         Path localPath = Paths.get(System.getProperty("user.dir"), "data", "charger_card", fileName);
         boolean localDeleted = false;
         if (FileUtil.exist(localPath.toFile())) {
+            log.info("🔍 File exists: {}", localPath.toAbsolutePath());
             localDeleted = FileUtil.del(localPath.toFile());
+            if (!localDeleted) {
+                log.error("⚠️ Failed to delete file: {}", localPath.toAbsolutePath());
+            }
+        } else {
+            log.warn("⚠️ File not found: {}", localPath.toAbsolutePath());
         }
+
         if (localDeleted) {
             log.info("✅ Charger card delete successful (Local)");
         } else {

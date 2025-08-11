@@ -9,6 +9,13 @@ aliyun:
     access-key-secret: "${ALIYUN_OSS_ACCESS_KEY_SECRET}"
     bucket-name: "${ALIYUN_OSS_BUCKET_NAME}"
 
+okta:
+  client-id: "${OKTA_CLIENT_ID}"
+  client-secret: "${OKTA_CLIENT_SECRET}"
+  redirect-uri: "${OKTA_REDIRECT_URI}"
+  domain: "${OKTA_DOMAIN}"
+  authServer: "${OKTA_AUTH_SERVER}"
+
 serverchan:
   token: "${SERVER_CHAN_KEY}"
 

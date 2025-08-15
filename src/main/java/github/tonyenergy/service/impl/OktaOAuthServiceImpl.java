@@ -1,6 +1,7 @@
 package github.tonyenergy.service.impl;
 
 import github.tonyenergy.service.OktaOAuthService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -18,6 +19,7 @@ import java.util.HashMap;
  * @Date: 2025/8/6
  */
 @Service
+@Slf4j
 public class OktaOAuthServiceImpl implements OktaOAuthService {
 
 
@@ -90,6 +92,7 @@ public class OktaOAuthServiceImpl implements OktaOAuthService {
             resultMap.put("scope", node.get("scope").asText());
             return resultMap;
         } catch (Exception e) {
+            log.warn("⚠️ Fail to parse token!");
             throw new RuntimeException("Token parse fail: " + e.getMessage());
         }
     }

@@ -1,6 +1,17 @@
 spring:
   profiles:
     active: dev  # default using dev env
+  datasource:
+    url: ${RAILWAY_MYSQL_URL}
+    username: ${RAILWAY_MYSQL_USERNAME}
+    password: ${RAILWAY_MYSQL_PASSWORD}
+    driver-class-name: ${RAILWAY_MYSQL_DRIVER_CLASSNAME}
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    # TODO: need to print to the log file
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 aliyun:
   oss:

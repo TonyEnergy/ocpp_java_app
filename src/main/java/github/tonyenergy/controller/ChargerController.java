@@ -26,7 +26,7 @@ public class ChargerController {
     private ChargerService chargerService;
 
     /**
-     * Create a charger
+     * add a charger card
      *
      * @param chargerCardVo charger card vo
      * @return message
@@ -37,15 +37,13 @@ public class ChargerController {
     }
 
     /**
-     * List all charger file name from oss, use for restore data to local
+     * List all charger card
      *
      * @return file name list
      */
-    @PostMapping("/listOssChargerFileNames")
-    public List<String> listOssChargerFileNames() {
-        String prefix = "data/charger_card/";
-        String end = ".json";
-        return chargerService.listOssChargerFileNames(prefix, end);
+    @PostMapping("/listAllChargerCard")
+    public List<ChargerCard> listAllChargerCard() {
+        return chargerService.listAllChargerCard();
     }
 
     /**
@@ -63,7 +61,7 @@ public class ChargerController {
      * Delete charger by charger id
      *
      * @param chargerId charger id
-     * @return if delete oss and local file successful, return true
+     * @return if delete successful, return true
      */
     @DeleteMapping("/charger/{chargerId}")
     public ResponseEntity<Boolean> deleteChargerByChargerId(@PathVariable String chargerId) {
@@ -73,15 +71,5 @@ public class ChargerController {
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
         }
-    }
-
-    /**
-     * Get all local charger cards
-     *
-     * @return return all local charger cards
-     */
-    @PostMapping("/getAllLocalChargerCards")
-    public List<ChargerCard> getAllLocalChargerCards() {
-        return chargerService.getAllLocalChargerCards();
     }
 }

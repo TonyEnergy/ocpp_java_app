@@ -39,8 +39,9 @@ public class ChargerHandshakeInterceptor implements HandshakeInterceptor {
         String path = request.getURI().getPath();
         String chargerId = path.substring(path.lastIndexOf('/') + 1);
         log.info("🤝 Trying handshake for chargerId: {}", chargerId);
-        List<String> chargerIdList = chargerService.listLocalChargerId();
-        if (chargerIdList.contains(chargerId)) {
+        // check if charger id exist
+        boolean result = chargerService.checkChargerId(chargerId);
+        if (result) {
             log.info("✅ Charger exists. Allow WebSocket handshake for {}", chargerId);
             attributes.put("chargerId", chargerId);
             return true;

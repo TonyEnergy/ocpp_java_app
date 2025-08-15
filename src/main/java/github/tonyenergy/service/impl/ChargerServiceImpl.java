@@ -54,28 +54,6 @@ public class ChargerServiceImpl extends ServiceImpl<ChargerMapper, ChargerCard> 
     public List<ChargerCard> listAllChargerCard() {
         return baseMapper.selectList(null);
     }
-    /**
-     * list local charger id
-     *
-     * @return charger id list
-     */
-    @Override
-    public List<String> listLocalChargerId() {
-        List<String> chargerIds = new ArrayList<>();
-        File folder = new File("data/charger_card");
-        if (folder.exists() && folder.isDirectory()) {
-            File[] files = folder.listFiles((dir, name) -> name.startsWith("charger_") && name.endsWith(".json"));
-            if (files != null) {
-                for (File file : files) {
-                    String fileName = file.getName();
-                    // get charger id part
-                    String chargerId = fileName.substring("charger_".length(), fileName.length() - ".json".length());
-                    chargerIds.add(chargerId);
-                }
-            }
-        }
-        return chargerIds;
-    }
 
     /**
      * Get charger card through charger id
@@ -113,5 +91,13 @@ public class ChargerServiceImpl extends ServiceImpl<ChargerMapper, ChargerCard> 
     @Override
     public void connect(String chargerId) {
         log.info("Charger: {} connect to the server", chargerId);
+    }
+
+    @Override
+    public boolean checkChargerId(String chargerId) {
+        LambdaQueryWrapper<ChargerCard> chargerCardLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        chargerCardLambdaQueryWrapper.eq(ChargerCard::getChargerId, chargerId);
+        ChargerCard chargerCard = baseMapper.selectOne(chargerCardLambdaQueryWrapper);
+        return chargerCard != null;
     }
 }

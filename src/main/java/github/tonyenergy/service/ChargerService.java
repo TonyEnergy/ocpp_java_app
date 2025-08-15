@@ -32,12 +32,6 @@ public interface ChargerService extends IService<ChargerCard> {
      */
     List<ChargerCard> listAllChargerCard();
 
-    /**
-     * list all local charger id
-     *
-     * @return charger id list
-     */
-    List<String> listLocalChargerId();
 
     /**
      * Get charger card entity through charger id
@@ -61,4 +55,12 @@ public interface ChargerService extends IService<ChargerCard> {
      * @param chargerId charger id
      */
     void connect(String chargerId);
+
+    /**
+     * Check if charger id exist in database
+     *
+     * @param chargerId charger id
+     * @return if it existed, return true, if it doesn't exist, return false
+     */
+    boolean checkChargerId(String chargerId);
 }

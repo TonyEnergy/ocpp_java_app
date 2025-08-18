@@ -2,10 +2,18 @@ spring:
   profiles:
     active: dev  # default using dev env
   datasource:
-    url: ${RAILWAY_MYSQL_URL}
-    username: ${RAILWAY_MYSQL_USERNAME}
-    password: ${RAILWAY_MYSQL_PASSWORD}
-    driver-class-name: ${RAILWAY_MYSQL_DRIVER_CLASSNAME}
+    url: ${AIVEN_MYSQL_URL}
+    username: ${AIVEN_MYSQL_USERNAME}
+    password: ${AIVEN_MYSQL_PASSWORD}
+    driver-class-name: ${AIVEN_MYSQL_DRIVER_CLASSNAME}
+    hikari:
+      minimum-idle: 1                  # Create 1 connection at startup and keep them ready
+      maximum-pool-size: 3            # Maximum number of connections in the pool
+      idle-timeout: 1800000             # Release an idle connection if it’s not used for 30 minutes (ms)
+      max-lifetime: 3600000            # Maximum lifetime of a connection is 1 hour (forcefully recycled, in ms)
+      keepalive-time: 300000           # Send a keep-alive query every 5 minutes to keep connections alive (ms)
+
+
 
 mybatis-plus:
   configuration:

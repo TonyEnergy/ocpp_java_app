@@ -1,20 +1,21 @@
-# 使用 OpenJDK 8 作为基础镜像
-FROM openjdk:8-jdk-alpine
-
-# 安装 Maven
-RUN apk add --no-cache maven
+# 使用更轻量的 JDK 基础镜像
+FROM eclipse-temurin:8-jre-jammy as runtime
 
 # 设置工作目录
 WORKDIR /app
 
-# 复制项目的所有文件到容器
-COPY . .
+# 复制 Maven 打包产物（只复制 jar，而不是整个项目）
+COPY target/ocpp_java_app-1.0-SNAPSHOT.jar app.jar
 
-# 运行 Maven 构建项目
-RUN mvn clean package -DskipTests
-
-# 设置环境变量，指定活动的 Spring 配置文件
+# 设置环境变量（Spring Profile）
 ENV SPRING_PROFILES_ACTIVE=prod
 
-# 运行 Java 应用
-CMD ["java", "-jar", "target/ocpp_java_app-1.0-SNAPSHOT.jar"]
+# JVM 内存优化参数，避免 OOM
+# -Xmx 限制最大堆内存
+# -Xms 设置初始堆内存
+# -XX:+UseContainerSupport 让 JVM 感知容器内存限制
+# -XX:+UseSerialGC 小内存下更合适
+ENV JAVA_OPTS="-Xms64m -Xmx350m -XX:+UseContainerSupport -XX:+UseSerialGC"
+
+# 启动命令
+CMD ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

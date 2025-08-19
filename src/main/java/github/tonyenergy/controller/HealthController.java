@@ -15,7 +15,7 @@ public class HealthController {
     @GetMapping("/ping")
     @Operation(summary = "Keep render server alive", description = "uptime robot will invoke this function per 5 minutes, keep render backend alive")
     public String ping() {
-        log.info("📩 Server Received message：ping");
+//        log.info("📩 Server Received message：ping");
         return "pong";
     }
 }

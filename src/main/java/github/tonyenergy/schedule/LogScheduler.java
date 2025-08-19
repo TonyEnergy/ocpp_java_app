@@ -23,10 +23,10 @@ public class LogScheduler {
     /**
      * Print alive log per 2 minutes
      */
-    @Scheduled(fixedRate = 120000)
-    public void logAlive() {
-        log.info("💡 Server is still alive at {}", LocalDateTime.now());
-    }
+//    @Scheduled(fixedRate = 120000)
+//    public void logAlive() {
+//        log.info("💡 Server is still alive at {}", LocalDateTime.now());
+//    }
     
     /**
      * Send log to WeChat every 5 hours at the 1st minute

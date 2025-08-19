@@ -1,11 +1,14 @@
 package github.tonyenergy.config;
 
+import github.tonyenergy.interceptors.IpLoggingInterceptor;
 import github.tonyenergy.service.ChargerService;
 import github.tonyenergy.websocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.socket.config.annotation.*;
 
@@ -19,7 +22,8 @@ import org.springframework.web.socket.config.annotation.*;
 @EnableWebSocket
 @Slf4j
 public class WebConfig implements WebSocketConfigurer, WebMvcConfigurer {
-
+    @Autowired
+    private IpLoggingInterceptor ipLoggingInterceptor;
     private final WebSocketServer webSocketServer;
 
     @Value("${server.port}")
@@ -66,5 +70,16 @@ public class WebConfig implements WebSocketConfigurer, WebMvcConfigurer {
                 .allowedHeaders("*")
                 .allowCredentials(false)
                 .maxAge(3600);
+    }
+
+    /**
+     * Track request ip
+     *
+     * @param registry registry
+     */
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(ipLoggingInterceptor)
+                .addPathPatterns("/**");
     }
 }

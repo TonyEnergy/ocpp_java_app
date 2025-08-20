@@ -9,6 +9,7 @@ import github.tonyenergy.entity.conf.HeartbeatConf;
 import github.tonyenergy.entity.req.ChangeConfigurationReq;
 import github.tonyenergy.entity.req.GetConfigurationReq;
 import github.tonyenergy.entity.req.ResetReq;
+import github.tonyenergy.service.ChargerLogService;
 import github.tonyenergy.service.ChargerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,9 @@ public class WebSocketServer extends TextWebSocketHandler {
     @Autowired
     public ChargerService chargerService;
 
+    @Autowired
+    public ChargerLogService chargerLogService;
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         String chargerId = (String) session.getAttributes().get("chargerId");
@@ -63,6 +67,8 @@ public class WebSocketServer extends TextWebSocketHandler {
      */
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        // get chargerId
+        String chargerId = (String) session.getAttributes().get("chargerId");
         String ocppMessage = message.getPayload();
         // Read payload as a json node
         JsonNode jsonNode = objectMapper.readTree(ocppMessage);
@@ -85,7 +91,7 @@ public class WebSocketServer extends TextWebSocketHandler {
                 future = new CompletableFuture<>();
                 log.info("📩 Received CALL message from charger {}", ocppCall.getCallJson());
                 // Check OCPP command, then create a response
-                OCPPCallResult ocppCallResult = handleOcppCall(ocppCall, future);
+                OCPPCallResult ocppCallResult = handleOcppCall(chargerId, ocppCall, future);
                 // send response to charger
                 log.info("📤 Response Charger: {}", ocppCallResult.getCallResultJson());
                 session.sendMessage(new TextMessage(ocppCallResult.getCallResultJson()));
@@ -103,15 +109,6 @@ public class WebSocketServer extends TextWebSocketHandler {
             ocppCallResult.setPayload(objectMapper.convertValue(jsonNode.get(2), Object.class));
             MessageTypeEnumCode messageType = MessageTypeEnumCode.fromNumber(ocppCallResult.getMessageType());
             if (messageType == MessageTypeEnumCode.CALL_RESULT) {
-                // TODO: save call result in database
-//                future = pendingRequests.remove(ocppCallResult.getMessageId());
-//                if (future != null) {
-//                    log.info("📩 Received message of type {}", ocppMessage);
-//                    pendingRequests.put(ocppCallResult.getMessageId(), future);
-//                    future.complete(ocppMessage);
-//                } else {
-//                    log.warn("⚠️ No pending request for messageId: {}", ocppCallResult.getMessageId());
-//                }
                 future = pendingRequests.remove(ocppCallResult.getMessageId());
                 if (future != null) {
                     log.info("📩 Received message of type {}", ocppMessage);
@@ -138,11 +135,12 @@ public class WebSocketServer extends TextWebSocketHandler {
 
     /**
      * handle ocpp call
+     * @param chargerId chargerId
      * @param ocppCall ocpp call, call from charger
      * @param future    completable future
      * @return ocpp call result
      */
-    public OCPPCallResult handleOcppCall(OCPPCall ocppCall, CompletableFuture<String> future) {
+    public OCPPCallResult handleOcppCall(String chargerId, OCPPCall ocppCall, CompletableFuture<String> future) {
         OCPPActionEnumCode action = OCPPActionEnumCode.from(ocppCall.getAction());
         // if command is from OCPP protocol, handle command
         OCPPCallResult ocppCallResult = new OCPPCallResult();
@@ -154,16 +152,12 @@ public class WebSocketServer extends TextWebSocketHandler {
                 bootNotificationConf.setInterval(3600);
                 bootNotificationConf.setTimestamp(new Date());
                 bootNotificationConf.setStatus("Accepted");
-                // TODO: need to save bootNotificationReq to database (ocppCall)
-                log.info("Saving BootNotificationReq...");
                 // build ocpp call result, then response charger
                 ocppCallResult.setMessageType(MessageTypeEnumCode.CALL_RESULT.getMessageTypeNumber());
                 ocppCallResult.setMessageId(ocppCall.getMessageId());
                 ocppCallResult.setPayload(bootNotificationConf);
             } else if (action == OCPPActionEnumCode.StatusNotification){
                 // TODO: need to finish status notification logic, if Status notification is standard, return "{}"
-                // TODO: need to save StatusNotificationReq to database (ocppCall)
-                log.info("Saving StatusNotificationReq...");
                 // build ocpp call result, then response charger
                 ocppCallResult.setMessageType(MessageTypeEnumCode.CALL_RESULT.getMessageTypeNumber());
                 ocppCallResult.setMessageId(ocppCall.getMessageId());
@@ -171,8 +165,6 @@ public class WebSocketServer extends TextWebSocketHandler {
             } else if (action == OCPPActionEnumCode.Heartbeat){
                 // TODO: need to finish status notification logic, if Status notification is standard, return now
                 HeartbeatConf heartbeatConf = new HeartbeatConf(new Date());
-                // TODO: need to save HeartbeatReq to database (ocppCall)
-                log.info("Saving HeartbeatReq...");
                 // build ocpp call result, then response charger
                 ocppCallResult.setMessageType(MessageTypeEnumCode.CALL_RESULT.getMessageTypeNumber());
                 ocppCallResult.setMessageId(ocppCall.getMessageId());
@@ -181,6 +173,8 @@ public class WebSocketServer extends TextWebSocketHandler {
                 ocppCallResult.setPayload("{other action}");
                 log.info("{other action}");
             }
+            log.info("Saving charger Log...");
+            chargerLogService.saveChargerLog(chargerId, ocppCall, ocppCallResult);
             return ocppCallResult;
         } else {
             log.warn("⚠️ Action is null!");

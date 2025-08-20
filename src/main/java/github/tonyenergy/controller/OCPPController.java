@@ -57,7 +57,9 @@ public class OCPPController {
         } else {
             try {
                 // Wait for the response with a timeout of 10 seconds
-                return future.get(10, TimeUnit.SECONDS);
+                String ocppCallResult = future.get(10, TimeUnit.SECONDS);
+                log.info("📩 Received CALL message from server {}", ocppCallResult);
+                return ocppCallResult;
             } catch (TimeoutException e) {
                 log.error("❌ Response Timeout for chargerId: {}", chargerId);
                 return "Response Timeout!!!";

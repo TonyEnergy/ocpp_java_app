@@ -14,8 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -90,7 +88,7 @@ public class ChargerServiceImpl extends ServiceImpl<ChargerMapper, ChargerCard> 
      */
     @Override
     public void connect(String chargerId) {
-        log.info("Charger: {} connect to the server", chargerId);
+        log.info("🔋 Charger: {} connect to the server", chargerId);
     }
 
     @Override

@@ -1,12 +1,11 @@
 package github.tonyenergy.websocket;
 
 import cn.hutool.core.lang.UUID;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import github.tonyenergy.entity.common.MessageTypeEnumCode;
-import github.tonyenergy.entity.common.OCPPCallResultEnumCode;
-import github.tonyenergy.entity.common.ResetTypeEnumCode;
+import github.tonyenergy.entity.common.*;
+import github.tonyenergy.entity.conf.BootNotificationConf;
+import github.tonyenergy.entity.conf.HeartbeatConf;
 import github.tonyenergy.entity.req.ChangeConfigurationReq;
 import github.tonyenergy.entity.req.GetConfigurationReq;
 import github.tonyenergy.entity.req.ResetReq;
@@ -56,7 +55,7 @@ public class WebSocketServer extends TextWebSocketHandler {
 
 
     /**
-     * Handle message from charger
+     * Handle call message from charger
      *
      * @param session session
      * @param message message from charger
@@ -64,81 +63,129 @@ public class WebSocketServer extends TextWebSocketHandler {
      */
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        String payload = message.getPayload();
-        // read payload as an object map
-        JsonNode jsonNode = objectMapper.readTree(payload);
-        if (jsonNode.isArray() && jsonNode.size() >= 3) {
-            // get message type id
-            int messageTypeId = jsonNode.get(0).asInt();
-            // get message id
-            String messageId = jsonNode.get(1).asText();
-            MessageTypeEnumCode typeEnum = MessageTypeEnumCode.fromNumber(messageTypeId);
-            if (typeEnum != null) {
-                CompletableFuture<String> future;
-                switch (typeEnum) {
-                    case CALL:
-                        future = new CompletableFuture<>();
-                        log.info("📩 Received message of type {}: {}", messageTypeId, payload);
-                        // Check OCPP command, then response.
-                        String responseToCharger = handlePayload(payload, messageId, future);
-                        session.sendMessage(new TextMessage(responseToCharger));
-                        future.complete(payload);
-                        break;
-                    case CALL_RESULT:
-                        future = pendingRequests.remove(messageId);
-                        if (future != null) {
-                            log.info("📩 Received message of type {}: {}", messageTypeId, payload);
-                            pendingRequests.put(messageId, future);
-                            future.complete(payload);
-                        } else {
-                            log.warn("⚠️ No pending request for messageId: {}", messageId);
-                        }
-                        break;
-                    case CALL_ERROR:
-                        future = pendingRequests.remove(messageId);
-                        if (future != null) {
-                            log.warn("⚠️ Received CallError: {}", payload);
-                            future.completeExceptionally(new RuntimeException("⚠️ Received CallError: " + payload));
-                        } else {
-                            log.warn("⚠️ No pending request for messageId: {}", messageId);
-                        }
-                        break;
-                    default:
-                        log.error("❌ Error OCPP Command");
+        String ocppMessage = message.getPayload();
+        // Read payload as a json node
+        JsonNode jsonNode = objectMapper.readTree(ocppMessage);
+        CompletableFuture<String> future;
+        // Check message is OCPP CALL message or OCPP CALL_RESULT message or invalid message
+        if (jsonNode.isArray() && jsonNode.size() == 4) {
+            OCPPCall ocppCall = new OCPPCall();
+            // get and set message type id
+            ocppCall.setMessageType(jsonNode.get(0).asInt());
+            // get and set message id
+            ocppCall.setMessageId(jsonNode.get(1).asText());
+            // get and set action
+            ocppCall.setAction(jsonNode.get(2).asText());
+            // get and set payload
+            ocppCall.setPayload(objectMapper.convertValue(jsonNode.get(3), Object.class));
+            // get message type
+            MessageTypeEnumCode messageType = MessageTypeEnumCode.fromNumber(ocppCall.getMessageType());
+            // If message type is CALL, means charger proactively call server
+            if (messageType == MessageTypeEnumCode.CALL) {
+                future = new CompletableFuture<>();
+                log.info("📩 Received CALL message from charger {}", ocppCall.getCallJson());
+                // Check OCPP command, then create a response
+                OCPPCallResult ocppCallResult = handleOcppCall(ocppCall, future);
+                // send response to charger
+                log.info("📤 Response Charger: {}", ocppCallResult.getCallResultJson());
+                session.sendMessage(new TextMessage(ocppCallResult.getCallResultJson()));
+                future.complete(ocppMessage);
+            } else {
+                log.error("❌ Ocpp call is not standard! Json Node length is 4, message type is not CALL!");
+            }
+        } else if (jsonNode.isArray() && jsonNode.size() == 3) {
+            OCPPCallResult ocppCallResult = new OCPPCallResult();
+            // get and set message type id
+            ocppCallResult.setMessageType(jsonNode.get(0).asInt());
+            // get and set message id
+            ocppCallResult.setMessageId(jsonNode.get(1).asText());
+            // get and set payload
+            ocppCallResult.setPayload(objectMapper.convertValue(jsonNode.get(2), Object.class));
+            MessageTypeEnumCode messageType = MessageTypeEnumCode.fromNumber(ocppCallResult.getMessageType());
+            if (messageType == MessageTypeEnumCode.CALL_RESULT) {
+                // TODO: save call result in database
+//                future = pendingRequests.remove(ocppCallResult.getMessageId());
+//                if (future != null) {
+//                    log.info("📩 Received message of type {}", ocppMessage);
+//                    pendingRequests.put(ocppCallResult.getMessageId(), future);
+//                    future.complete(ocppMessage);
+//                } else {
+//                    log.warn("⚠️ No pending request for messageId: {}", ocppCallResult.getMessageId());
+//                }
+                future = pendingRequests.remove(ocppCallResult.getMessageId());
+                if (future != null) {
+                    log.info("📩 Received message of type {}", ocppMessage);
+                    future.complete(ocppMessage);
+                } else {
+                    log.warn("⚠️ No pending request for messageId: {}", ocppCallResult.getMessageId());
                 }
             } else {
-                log.warn("⚠️ Unknown message type ID: {}", messageTypeId);
+                log.warn("⚠️ Unknown message type ID: {}", messageType);
             }
         } else {
-            log.warn("⚠️ Invalid OCPP message format: {}", payload);
+            // TODO: return CALL ERROR
+            log.error("❌ Ocpp call is not standard! Return CALL ERROR!");
+            String messageId = jsonNode.get(1).asText();
+            future = pendingRequests.remove(messageId);
+            if (future != null) {
+                log.warn("⚠️ Received CallError: {}", ocppMessage);
+                future.completeExceptionally(new RuntimeException("⚠️ Received CallError: " + ocppMessage));
+            } else {
+                log.warn("⚠️ No pending request for messageId: {}", messageId);
+            }
         }
     }
 
     /**
-     * Check payload OCPP command type, then deal with it, return response then response charger
-     *
-     * @param payload   Charger request
-     * @param messageId unique id
+     * handle ocpp call
+     * @param ocppCall ocpp call, call from charger
      * @param future    completable future
-     * @return response
+     * @return ocpp call result
      */
-    public String handlePayload(String payload, String messageId, CompletableFuture<String> future) {
-        try {
-            Object[] arr = objectMapper.readValue(payload, Object[].class);
-            String action = arr[2].toString();
-            OCPPCallResultEnumCode command = OCPPCallResultEnumCode.from(action);
-            if (command != null) {
-                log.info("📤 Response Charger: {}", command.handle(messageId));
-                pendingRequests.put(messageId, future);
-                return command.handle(messageId);
+    public OCPPCallResult handleOcppCall(OCPPCall ocppCall, CompletableFuture<String> future) {
+        OCPPActionEnumCode action = OCPPActionEnumCode.from(ocppCall.getAction());
+        // if command is from OCPP protocol, handle command
+        OCPPCallResult ocppCallResult = new OCPPCallResult();
+        if (action != null) {
+            pendingRequests.put(ocppCall.getMessageId(), future);
+            if (action == OCPPActionEnumCode.BootNotification){
+                // TODO: need to finish boot notification logic, return default value as temp
+                BootNotificationConf bootNotificationConf = new BootNotificationConf();
+                bootNotificationConf.setInterval(3600);
+                bootNotificationConf.setTimestamp(new Date());
+                bootNotificationConf.setStatus("Accepted");
+                // TODO: need to save bootNotificationReq to database (ocppCall)
+                log.info("Saving BootNotificationReq...");
+                // build ocpp call result, then response charger
+                ocppCallResult.setMessageType(MessageTypeEnumCode.CALL_RESULT.getMessageTypeNumber());
+                ocppCallResult.setMessageId(ocppCall.getMessageId());
+                ocppCallResult.setPayload(bootNotificationConf);
+            } else if (action == OCPPActionEnumCode.StatusNotification){
+                // TODO: need to finish status notification logic, if Status notification is standard, return "{}"
+                // TODO: need to save StatusNotificationReq to database (ocppCall)
+                log.info("Saving StatusNotificationReq...");
+                // build ocpp call result, then response charger
+                ocppCallResult.setMessageType(MessageTypeEnumCode.CALL_RESULT.getMessageTypeNumber());
+                ocppCallResult.setMessageId(ocppCall.getMessageId());
+                ocppCallResult.setPayload("{}");
+            } else if (action == OCPPActionEnumCode.Heartbeat){
+                // TODO: need to finish status notification logic, if Status notification is standard, return now
+                HeartbeatConf heartbeatConf = new HeartbeatConf(new Date());
+                // TODO: need to save HeartbeatReq to database (ocppCall)
+                log.info("Saving HeartbeatReq...");
+                // build ocpp call result, then response charger
+                ocppCallResult.setMessageType(MessageTypeEnumCode.CALL_RESULT.getMessageTypeNumber());
+                ocppCallResult.setMessageId(ocppCall.getMessageId());
+                ocppCallResult.setPayload(heartbeatConf);
             } else {
-                log.warn("⚠️ Unknown action: {}", action);
-                return "{}";
+                ocppCallResult.setPayload("{other action}");
+                log.info("{other action}");
             }
-        } catch (JsonProcessingException e) {
-            log.error("❌ Error read payload");
+            return ocppCallResult;
+        } else {
+            log.warn("⚠️ Action is null!");
+            return null;
         }
-        return null;
     }
 
     @Override
@@ -238,7 +285,7 @@ public class WebSocketServer extends TextWebSocketHandler {
             log.error("❌ Error sending message to chargerId: {}, messageId: {}", chargerId, messageId, ioException);
             future.complete("❌ Error sending message to chargerId: " + chargerId + "messageId: " + messageId);
         }
-        return null;
+        return future;
     }
 
     /**
@@ -273,6 +320,6 @@ public class WebSocketServer extends TextWebSocketHandler {
             log.error("❌ Error sending message to chargerId: {}, messageId: {}", chargerId, messageId, ioException);
             future.complete("❌ Error sending message to chargerId: " + chargerId + "messageId: " + messageId);
         }
-        return null;
+        return future;
     }
 }

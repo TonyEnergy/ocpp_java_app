@@ -1,7 +1,7 @@
 package github.tonyenergy.entity.req;
 
 import github.tonyenergy.entity.common.MessageTypeEnumCode;
-import github.tonyenergy.entity.common.OCPPCallEnumCode;
+import github.tonyenergy.entity.common.OCPPActionEnumCode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,7 +26,7 @@ public class ChangeConfigurationReq {
         return new Object[]{
                 MessageTypeEnumCode.CALL.getMessageTypeNumber(),
                 uniqueId,
-                OCPPCallEnumCode.ChangeConfiguration.name(),
+                OCPPActionEnumCode.ChangeConfiguration.name(),
                 this
         };
     }

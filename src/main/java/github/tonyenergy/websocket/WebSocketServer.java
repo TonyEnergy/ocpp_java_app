@@ -10,6 +10,7 @@ import github.tonyenergy.entity.req.ChangeConfigurationReq;
 import github.tonyenergy.entity.req.GetConfigurationReq;
 import github.tonyenergy.entity.req.ResetReq;
 import github.tonyenergy.service.ChargerService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -31,10 +32,11 @@ import java.util.concurrent.*;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class WebSocketServer extends TextWebSocketHandler {
 
     private static final Set<WebSocketSession> WEB_SOCKET_SESSIONS = new CopyOnWriteArraySet<>();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     /**
      * Store messageId and CompletableFuture Map, use to asynchronous response

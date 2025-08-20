@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@RestController("/api")
+@RestController("/chargerLog")
 @Slf4j
 public class ChargerLogController {
 

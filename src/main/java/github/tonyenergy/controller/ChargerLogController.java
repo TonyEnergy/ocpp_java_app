@@ -5,7 +5,7 @@ import github.tonyenergy.service.ChargerLogService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -23,7 +23,7 @@ public class ChargerLogController {
      * @return return charger log list
      */
     @PostMapping("/checkChargerLogs")
-    public List<ChargerLog> checkChargerLogs(@RequestBody String chargerId) {
+    public List<ChargerLog> checkChargerLogs(@RequestParam String chargerId) {
         return chargerLogService.checkChargerLogs(chargerId);
     }
 }

@@ -19,14 +19,14 @@ An **OCPP (Open Charge Point Protocol)** platform built with **Java + Spring Boo
 ┌───────────────────────────────────────┐
 │       Backend (Java + Spring Boot)    │
 │  - WebSocket server (OCPP)            │
-│  - Message parsing & routing           │
-│  - JSON payload mapping                │
+│  - Message parsing & routing          │
+│  - JSON payload mapping               │
 │  - REST API (extensions)              │
 └───────────────────────────────────────┘
                 │ websocket
                 ▼
 ┌───────────────────────────────────────┐
-│            EV Chargers                 │
+│            EV Chargers                │
 │  - BootNotification                   │
 │  - Heartbeat                          │
 │  - StatusNotification                 │

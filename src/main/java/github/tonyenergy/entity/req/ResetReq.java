@@ -1,7 +1,7 @@
 package github.tonyenergy.entity.req;
 
-import github.tonyenergy.entity.common.MessageTypeEnumCode;
-import github.tonyenergy.entity.common.OCPPActionEnumCode;
+import github.tonyenergy.entity.common.enums.MessageTypeEnum;
+import github.tonyenergy.entity.common.enums.OCPPActionEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,9 +25,9 @@ public class ResetReq {
 
     public Object[] getRequest(String uniqueId) {
         return new Object[]{
-                MessageTypeEnumCode.CALL.getMessageTypeNumber(),
+                MessageTypeEnum.CALL.getCode(),
                 uniqueId,
-                OCPPActionEnumCode.Reset.name(),
+                OCPPActionEnum.Reset.name(),
                 this
         };
     }

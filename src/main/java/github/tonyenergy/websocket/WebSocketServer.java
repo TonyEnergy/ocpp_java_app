@@ -4,6 +4,9 @@ import cn.hutool.core.lang.UUID;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import github.tonyenergy.entity.common.*;
+import github.tonyenergy.entity.common.enums.MessageTypeEnum;
+import github.tonyenergy.entity.common.enums.OCPPActionEnum;
+import github.tonyenergy.entity.common.enums.ResetTypeEnum;
 import github.tonyenergy.entity.conf.BootNotificationConf;
 import github.tonyenergy.entity.conf.HeartbeatConf;
 import github.tonyenergy.entity.req.ChangeConfigurationReq;
@@ -87,9 +90,9 @@ public class WebSocketServer extends TextWebSocketHandler {
             // get and set payload
             ocppCall.setPayload(objectMapper.convertValue(jsonNode.get(3), Object.class));
             // get message type
-            MessageTypeEnumCode messageType = MessageTypeEnumCode.fromNumber(ocppCall.getMessageType());
+            MessageTypeEnum messageType = MessageTypeEnum.fromNumber(ocppCall.getMessageType());
             // If message type is CALL, means charger proactively call server
-            if (messageType == MessageTypeEnumCode.CALL) {
+            if (messageType == MessageTypeEnum.CALL) {
                 future = new CompletableFuture<>();
                 log.info("📩 Received CALL message from charger {}", ocppCall.getCallJson());
                 // Check OCPP command, then create a response
@@ -109,8 +112,8 @@ public class WebSocketServer extends TextWebSocketHandler {
             ocppCallResult.setMessageId(jsonNode.get(1).asText());
             // get and set payload
             ocppCallResult.setPayload(objectMapper.convertValue(jsonNode.get(2), Object.class));
-            MessageTypeEnumCode messageType = MessageTypeEnumCode.fromNumber(ocppCallResult.getMessageType());
-            if (messageType == MessageTypeEnumCode.CALL_RESULT) {
+            MessageTypeEnum messageType = MessageTypeEnum.fromNumber(ocppCallResult.getMessageType());
+            if (messageType == MessageTypeEnum.CALL_RESULT) {
                 future = pendingRequests.remove(ocppCallResult.getMessageId());
                 if (future != null) {
                     log.info("📩 Received message of type {}", ocppMessage);
@@ -143,32 +146,32 @@ public class WebSocketServer extends TextWebSocketHandler {
      * @return ocpp call result
      */
     public OCPPCallResult handleOcppCall(String chargerId, OCPPCall ocppCall, CompletableFuture<String> future) {
-        OCPPActionEnumCode action = OCPPActionEnumCode.from(ocppCall.getAction());
+        OCPPActionEnum action = OCPPActionEnum.from(ocppCall.getAction());
         // if command is from OCPP protocol, handle command
         OCPPCallResult ocppCallResult = new OCPPCallResult();
         if (action != null) {
             pendingRequests.put(ocppCall.getMessageId(), future);
-            if (action == OCPPActionEnumCode.BootNotification){
+            if (action == OCPPActionEnum.BootNotification){
                 // TODO: need to finish boot notification logic, return default value as temp
                 BootNotificationConf bootNotificationConf = new BootNotificationConf();
                 bootNotificationConf.setInterval(3600);
                 bootNotificationConf.setTimestamp(new Date());
                 bootNotificationConf.setStatus("Accepted");
                 // build ocpp call result, then response charger
-                ocppCallResult.setMessageType(MessageTypeEnumCode.CALL_RESULT.getMessageTypeNumber());
+                ocppCallResult.setMessageType(MessageTypeEnum.CALL_RESULT.getCode());
                 ocppCallResult.setMessageId(ocppCall.getMessageId());
                 ocppCallResult.setPayload(bootNotificationConf);
-            } else if (action == OCPPActionEnumCode.StatusNotification){
+            } else if (action == OCPPActionEnum.StatusNotification){
                 // TODO: need to finish status notification logic, if Status notification is standard, return "{}"
                 // build ocpp call result, then response charger
-                ocppCallResult.setMessageType(MessageTypeEnumCode.CALL_RESULT.getMessageTypeNumber());
+                ocppCallResult.setMessageType(MessageTypeEnum.CALL_RESULT.getCode());
                 ocppCallResult.setMessageId(ocppCall.getMessageId());
                 ocppCallResult.setPayload("{}");
-            } else if (action == OCPPActionEnumCode.Heartbeat){
+            } else if (action == OCPPActionEnum.Heartbeat){
                 // TODO: need to finish status notification logic, if Status notification is standard, return now
                 HeartbeatConf heartbeatConf = new HeartbeatConf(new Date());
                 // build ocpp call result, then response charger
-                ocppCallResult.setMessageType(MessageTypeEnumCode.CALL_RESULT.getMessageTypeNumber());
+                ocppCallResult.setMessageType(MessageTypeEnum.CALL_RESULT.getCode());
                 ocppCallResult.setMessageId(ocppCall.getMessageId());
                 ocppCallResult.setPayload(heartbeatConf);
             } else {
@@ -295,7 +298,7 @@ public class WebSocketServer extends TextWebSocketHandler {
         String messageId = UUID.randomUUID().toString();
         CompletableFuture<String> future = new CompletableFuture<>();
         WebSocketSession session = findSessionByChargerId(chargerId);
-        ResetTypeEnumCode resetType = ResetTypeEnumCode.from(type);
+        ResetTypeEnum resetType = ResetTypeEnum.from(type);
         try {
             if (resetType != null) {
                 Object[] ocppMessage = new ResetReq(resetType.name()).getRequest(messageId);

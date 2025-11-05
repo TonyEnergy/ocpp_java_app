@@ -1,5 +1,6 @@
 package github.tonyenergy.controller;
 
+import github.tonyenergy.entity.common.OCPPServerCommandsEnumCode;
 import github.tonyenergy.entity.vo.ChargerCardVo;
 import github.tonyenergy.entity.ChargerCard;
 import github.tonyenergy.service.ChargerService;
@@ -70,6 +71,34 @@ public class ChargerController {
             return ResponseEntity.ok(true);
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
+        }
+    }
+
+
+    /**
+     * get all ocpp commands
+     *
+     * @return ocpp commands list
+     */
+    @PostMapping("/getAllOcppCommands")
+    public List<OCPPServerCommandsEnumCode> getAllOcppCommands() {
+        return chargerService.getAllOcppCommands();
+    }
+
+    // TODO: need to check session
+    /**
+     * debug page connect to server and check websocket connection with charger
+     *
+     * @param chargerId charger id
+     * @return if connect successful, return true
+     */
+    @PostMapping("/charger/connect")
+    public ResponseEntity<Boolean> connect(@RequestParam String chargerId) {
+        if(chargerService.checkChargerId(chargerId)){
+            // check session see if it's still alive
+            return ResponseEntity.ok(true);
+        }else {
+            return ResponseEntity.ok(false);
         }
     }
 }

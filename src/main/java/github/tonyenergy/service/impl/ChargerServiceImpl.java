@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import github.tonyenergy.entity.ChargerCard;
+import github.tonyenergy.entity.common.OCPPServerCommandsEnumCode;
 import github.tonyenergy.entity.vo.ChargerCardVo;
 import github.tonyenergy.mapper.ChargerMapper;
 import github.tonyenergy.service.ChargerService;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -97,5 +99,15 @@ public class ChargerServiceImpl extends ServiceImpl<ChargerMapper, ChargerCard> 
         chargerCardLambdaQueryWrapper.eq(ChargerCard::getChargerId, chargerId);
         ChargerCard chargerCard = baseMapper.selectOne(chargerCardLambdaQueryWrapper);
         return chargerCard != null;
+    }
+
+    /**
+     * get all ocpp commands
+     *
+     * @return ocpp commands list
+     */
+    @Override
+    public List<OCPPServerCommandsEnumCode> getAllOcppCommands() {
+        return Arrays.asList(OCPPServerCommandsEnumCode.values());
     }
 }

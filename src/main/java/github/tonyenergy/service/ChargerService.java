@@ -2,6 +2,7 @@ package github.tonyenergy.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import github.tonyenergy.entity.ChargerCard;
+import github.tonyenergy.entity.common.OCPPServerCommandsEnumCode;
 import github.tonyenergy.entity.vo.ChargerCardVo;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -62,4 +63,11 @@ public interface ChargerService extends IService<ChargerCard> {
      * @return if it existed, return true, if it doesn't exist, return false
      */
     boolean checkChargerId(String chargerId);
+
+    /**
+     * get all ocpp commands
+     *
+     * @return ocpp commands list
+     */
+    List<OCPPServerCommandsEnumCode> getAllOcppCommands();
 }

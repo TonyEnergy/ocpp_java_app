@@ -20,5 +20,11 @@ public enum OCPPServerCommandsEnumCode {
     ReserveNow,
     ChangeConfiguration,
     Reset;
-
+    public static OCPPServerCommandsEnumCode from(String name) {
+        try {
+            return OCPPServerCommandsEnumCode.valueOf(name);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }

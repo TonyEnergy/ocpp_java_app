@@ -1,13 +1,14 @@
 package github.tonyenergy.controller;
 
+import github.tonyenergy.service.OcppService;
 import github.tonyenergy.websocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -27,6 +28,29 @@ public class OCPPController {
 
     @Autowired
     private WebSocketServer webSocketServer;
+    @Autowired
+    private OcppService ocppService;
+    @PostMapping("/execute")
+    public ResponseEntity<Map<String, Object>> executeOcppAction(
+            @RequestParam String chargerId,
+            @RequestParam String action,
+            @RequestParam(required = false) HashMap<String,Object>  payload) {
+
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            String ocppCallResult = ocppService.executeOcppAction(chargerId, action, payload);
+            response.put("code", 200);
+            response.put("msg", "success");
+            response.put("data", ocppCallResult);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("code", 500);
+            response.put("msg", "failed: " + e.getMessage());
+            response.put("data", null);
+            return ResponseEntity.status(500).body(response);
+        }
+    }
 
     @GetMapping("/getConfiguration")
     public String ocppGetConfiguration(@RequestParam String chargerId, @RequestParam(required = false) String[] keys) {

@@ -1,9 +1,10 @@
 package github.tonyenergy.controller;
 
-import github.tonyenergy.entity.common.OCPPServerCommandsEnumCode;
+import github.tonyenergy.entity.common.OcppCommand;
 import github.tonyenergy.entity.vo.ChargerCardVo;
 import github.tonyenergy.entity.ChargerCard;
 import github.tonyenergy.service.ChargerService;
+import github.tonyenergy.service.OcppService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,9 @@ public class ChargerController {
 
     @Autowired
     private ChargerService chargerService;
+
+    @Autowired
+    private OcppService ocppService;
 
     /**
      * add a charger card
@@ -81,8 +85,8 @@ public class ChargerController {
      * @return ocpp commands list
      */
     @PostMapping("/getAllOcppCommands")
-    public List<OCPPServerCommandsEnumCode> getAllOcppCommands() {
-        return chargerService.getAllOcppCommands();
+    public List<OcppCommand> getAllCommands() {
+        return ocppService.getAllOcppCommands();
     }
 
     // TODO: need to check session

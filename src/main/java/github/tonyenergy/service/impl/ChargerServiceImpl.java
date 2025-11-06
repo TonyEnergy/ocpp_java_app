@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import github.tonyenergy.entity.ChargerCard;
-import github.tonyenergy.entity.common.OCPPServerCommandsEnumCode;
 import github.tonyenergy.entity.vo.ChargerCardVo;
 import github.tonyenergy.mapper.ChargerMapper;
 import github.tonyenergy.service.ChargerService;
@@ -101,13 +100,4 @@ public class ChargerServiceImpl extends ServiceImpl<ChargerMapper, ChargerCard> 
         return chargerCard != null;
     }
 
-    /**
-     * get all ocpp commands
-     *
-     * @return ocpp commands list
-     */
-    @Override
-    public List<OCPPServerCommandsEnumCode> getAllOcppCommands() {
-        return Arrays.asList(OCPPServerCommandsEnumCode.values());
-    }
 }

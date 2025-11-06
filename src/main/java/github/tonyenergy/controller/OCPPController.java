@@ -34,7 +34,7 @@ public class OCPPController {
     public ResponseEntity<Map<String, Object>> executeOcppAction(
             @RequestParam String chargerId,
             @RequestParam String action,
-            @RequestParam(required = false) HashMap<String,Object>  payload) {
+            @RequestBody(required = false) HashMap<String,Object>  payload) {
 
         Map<String, Object> response = new HashMap<>();
 

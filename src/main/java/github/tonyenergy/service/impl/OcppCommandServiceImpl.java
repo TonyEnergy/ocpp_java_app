@@ -81,6 +81,24 @@ public class OcppCommandServiceImpl extends ServiceImpl<OcppCommandMapper, OcppC
                     return "Error while getting response.";
                 }
             }
+        } else if (OCPPServerCommandsEnumCode.from(action) == OCPPServerCommandsEnumCode.Reset) {
+            String type = (String) payload.get("type");
+            CompletableFuture<String> future = webSocketServer.sendReset(chargerId, type);
+            if (future == null) {
+                log.warn("⚠️ ChargerId: {} not active or failed to send message", chargerId);
+                return "Charger not active or failed to send message.";
+            } else {
+                try {
+                    // Wait for the response with a timeout of 10 seconds
+                    return future.get(10, TimeUnit.SECONDS);
+                } catch (TimeoutException e) {
+                    log.error("❌ Response Timeout for chargerId: {}", chargerId);
+                    return "Response Timeout!!!";
+                } catch (InterruptedException | ExecutionException e) {
+                    log.error("❌ Error while getting response for chargerId: {}", chargerId);
+                    return "Error while getting response.";
+                }
+            }
         } else {
             return "❌ Command is not standard!";
         }
